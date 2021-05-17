@@ -1,7 +1,7 @@
 
 # 编译原理 Project
 
-Pascal 语言编译器
+Sky 语言编译器 (类Pascal)
 
 组成员:
 

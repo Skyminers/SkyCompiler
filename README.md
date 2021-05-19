@@ -18,7 +18,7 @@ Sky 语言编译器
     - var a : int, b : char
     - let a = 233 (let 声明无需指定类型)
 4. 类型采用: int, char, bool, int64, double, float
-5. 有指针，但是不允许二重指针（即指向指针的指针）。声明方式与 C++ 相同 (int*,char*,bool* 等)
+5. 有指针。声明方式与 C++ 相同 (int*,char*,bool* 等)
 6. 面向对象，对象语法:
     - class : class2 {} 表示定义一个继承了 class2 的 class。 构造函数: __init__(), __del__(), 自身指针为 this
 7. 函数定义:
@@ -32,7 +32,7 @@ Sky 语言编译器
     - 删除: delete a
 10. if 语句 与 for 语句 采用 C++ 形式
 
-至于剩下的，看完了 [LIVM](https://github.com/Evian-Zhang/llvm-ir-tutorial/blob/master/LLVM%20IR%E5%85%A5%E9%97%A8%E6%8C%87%E5%8D%97(1)%E2%80%94%E2%80%94LLVM%E6%9E%B6%E6%9E%84%E7%AE%80%E4%BB%8B.md) 再说？
+至于剩下的，看完了 [LLVM](https://github.com/Evian-Zhang/llvm-ir-tutorial/blob/master/LLVM%20IR%E5%85%A5%E9%97%A8%E6%8C%87%E5%8D%97(1)%E2%80%94%E2%80%94LLVM%E6%9E%B6%E6%9E%84%E7%AE%80%E4%BB%8B.md) 再说？
 
 
 进阶主题：

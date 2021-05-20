@@ -7,22 +7,22 @@ using namespace std;
 %}
 
 
-/*ToBeFinished: sky keywords*/
+  /*ToBeFinished: sky keywords*/
 
 
-/*ToBeFinished: sky data type*/
+  /*ToBeFinished: sky data type*/
 
 
-/*ToBeFinished: sky symbols*/
+  /*ToBeFinished: sky symbols*/
 
 
-/*ToBeFinished: sky others*/
+  /*ToBeFinished: sky others*/
 
 
 
 %%
 
-/*the process of Lexical analysis*/
+  /*the process of Lexical analysis*/
 
 
 %%

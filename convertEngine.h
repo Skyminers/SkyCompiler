@@ -5,4 +5,9 @@
 #ifndef CONVERTENGINE_H
 #define CONVERTENGINE_H
 
+class ConvertEngine{
+public:
+
+};
+
 #endif CONVERTENGINE_H

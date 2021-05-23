@@ -41,4 +41,5 @@ Sky 语言编译器
 - 类型推断
 
 参考文献:
-- https://www.itread01.com/content/1546621251.html
+- [使用yacc和bison建立过滤器](https://www.itread01.com/content/1546621251.html)
+- [使用LLVM的API](https://feng-qi.github.io/2018/08/19/llvm-how-to-get-started-with-the-llvm-c-api/)

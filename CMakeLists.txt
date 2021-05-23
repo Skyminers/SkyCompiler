@@ -8,4 +8,4 @@ IF(APPLE)
 ENDIF()
 
 add_executable(PascalCompiler
-        main.cpp)
+        main.cpp nodeList.cpp convertEngine.cpp)

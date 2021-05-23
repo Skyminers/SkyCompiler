@@ -6,8 +6,30 @@
 #define NODELIST_H
 
 #include <IR/Value.h>
+#include "defineList.h"
 
-class Statement{
+using namespace llvm;
+class ASTNode{
+public:
+    virtual Value* convertToCode();
+};
+
+class Statement: ASTNode{
 
 };
+
+#ifdef  SCRIPT
+class SingleValue : Statement{
+public:
+    Value* convertToCode() override;
+private:
+    union value{
+        int iVal;
+        bool bVal;
+        char* sVal;
+        double fVal;
+    };
+};
+#endif
+
 #endif NODELIST_H

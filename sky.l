@@ -9,11 +9,34 @@ using namespace std;
 
   /*ToBeFinished: sky keywords*/
 
+KW_VAR var  //define variable
+KW_LET let  //define constant
+KW_FUN fun 
+KW_IF if 
+KW_FOR for 
+
+
+
+
+
+
 
   /*ToBeFinished: sky data type*/
 
+TYPE_INT int
+TYPE_INT_64 int64
+TYPE_CHAR char
+TYPE_BOOL bool
+TYPE_FLOAT float
+TYPE_DOUBLE double
+
 
   /*ToBeFinished: sky symbols*/
+
+SYM_LCURLYBRACE "{"
+SYM_RCURLYBRACE "}"
+
+
 
 
   /*ToBeFinished: sky others*/
@@ -23,6 +46,10 @@ using namespace std;
 %%
 
   /*the process of Lexical analysis*/
+
+
+
+
 
 
 %%

@@ -9,8 +9,8 @@ using namespace std;
 
   /*ToBeFinished: sky keywords*/
 
-KW_VAR var  /* define variable */
-KW_LET let  /* define constant */
+KW_VAR var  
+KW_LET let
 KW_FUN fun 
 KW_IF if 
 KW_FOR for 

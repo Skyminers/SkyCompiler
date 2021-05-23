@@ -7,4 +7,4 @@
 
 #define SCRIPT
 
-#endif DEFINELIST_H
+#endif //DEFINELIST_H

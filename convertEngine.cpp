@@ -3,3 +3,11 @@
 //
 
 #include "convertEngine.h"
+
+ConvertEngine engine;
+
+// Unit test
+int main() {
+    engine.newFunction();
+    engine.compile("test.out");
+}

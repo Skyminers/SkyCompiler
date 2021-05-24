@@ -5,13 +5,12 @@
 #ifndef NODELIST_H
 #define NODELIST_H
 
-#include <IR/Value.h>
 #include "defineList.h"
 
 using namespace llvm;
 class ASTNode{
 public:
-    virtual Value* convertToCode();
+    virtual void convertToCode();
 };
 
 class Statement: ASTNode{
@@ -21,7 +20,7 @@ class Statement: ASTNode{
 #ifdef  SCRIPT
 class SingleValue : Statement{
 public:
-    Value* convertToCode() override;
+    void convertToCode() override;
 private:
     union value{
         int iVal;
@@ -32,4 +31,4 @@ private:
 };
 #endif
 
-#endif NODELIST_H
+#endif

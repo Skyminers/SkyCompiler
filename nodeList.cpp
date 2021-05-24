@@ -6,6 +6,6 @@
 #include "nodeList.h"
 using namespace llvm;
 
-Value *SingleValue::convertToCode() {
+Value void::convertToCode() {
 
 }

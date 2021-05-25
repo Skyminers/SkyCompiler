@@ -10,19 +10,19 @@ using namespace std;
 %%
 
   /*the process of Lexical analysis*/
-"var"                       {return KW_VAR;}  
-"let"                       {return KW_LET;} 
-"new"                       {return KW_NEW;}
-"delete"                    {return KW_DELETE;}
-"func"                      {return KW_FUNCTION;} 
-"if"                        {return KW_IF;}
-"for"                       {return KW_FOR;} 
-"while"                     {return KW_WHILE;}
-"do"                        {return KW_DO;}
-"class"                     {return KW_CLASS;}
-"init"                      {return KW_INIT;}         /*构造函数*/
-"del"                       {return KW_DEL;}          /*析构函数*/
-"this"                      {return KW_THIS;}         /*自身指针*/
+"var"                         {return KW_VAR;}  
+"let"                         {return KW_LET;} 
+"new"                         {return KW_NEW;}
+"delete"                      {return KW_DELETE;}
+"func"                        {return KW_FUNCTION;} 
+"if"                          {return KW_IF;}
+"for"                         {return KW_FOR;} 
+"while"                       {return KW_WHILE;}
+"do"                          {return KW_DO;}
+"class"                       {return KW_CLASS;}
+"init"                        {return KW_INIT;}         /*构造函数*/
+"del"                         {return KW_DEL;}          /*析构函数*/
+"this"                        {return KW_THIS;}         /*自身指针*/
 
 "int"                         {return TYPE_INT;}
 "int*"                        {return TYPE_INT_POINTER;}
@@ -62,6 +62,32 @@ using namespace std;
 [a-zA-Z_][a-zA-Z0-9_]*        { 
                                 yylval.sVal = new std::string(yytext, yyleng);
                                 return IDENTIFIER; 
+                              }
+
+"true"|"false"                {
+                                yylval.sVal = new std::string(yytext, yyleng); 
+                                return BOOL;  
+                              }  
+
+[0-9]+\.[0-9]+                { 
+                                double tmp;
+                                sscanf(yytext, "%lf", &tmp);
+                                yylval.dVal = tmp;
+                                return DOUBLE; 
+                              }
+
+[0-9]+\.[0-9]+[fF]            { 
+                                float tmp;
+                                sscanf(yytext, "%lf", &tmp);
+                                yylval.fVal = tmp;
+                                return FLOAT; 
+                              }                              
+
+[0-9]+                        {
+                                int tmp;                                                          
+                                sscanf(yytext, "%d", &tmp);
+                                yylval.iVal = tmp; 
+                                return INT; 
                               }
 
 %%

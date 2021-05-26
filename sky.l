@@ -35,6 +35,8 @@ using namespace std;
 "double"                      {return TYPE_DOUBLE;}   
 "double*"                     {return TYPE_DOUBLE_POINTER;} 
 "bool"                        {return TYPE_BOOL;} 
+"bool*"                       {return TYPE_BOOL_POINTER;} 
+
 
 "{"                           {return SYM_LCB;}       /*left curly brace*/
 "}"                           {return SYM_RCB;}       /*right curly brace*/
@@ -57,16 +59,21 @@ using namespace std;
 "<"                           {return SYM_LT;}          /*less than*/           
 "=="                          {return SYM_ET;}          /*equal to*/  
 "->"                          {return SYM_RT;}          /*return type*/        
-"="                           {return KW_ASSIGN;}       /*赋值*/   
+"="                           {return SYM_ASSIGN;}       /*赋值*/   
+
+\'.\'                         {
+                                yylval.cVal = yytext[1];
+                                return CHAR;    
+                              }
 
 [a-zA-Z_][a-zA-Z0-9_]*        { 
                                 yylval.sVal = new std::string(yytext, yyleng);
-                                return IDENTIFIER; 
+                                return STRING; 
                               }
 
 "true"|"false"                {
                                 yylval.sVal = new std::string(yytext, yyleng); 
-                                return BOOL;  
+                                return BOOLEAN;  
                               }  
 
 [0-9]+\.[0-9]+                { 
@@ -78,7 +85,7 @@ using namespace std;
 
 [0-9]+\.[0-9]+[fF]            { 
                                 float tmp;
-                                sscanf(yytext, "%lf", &tmp);
+                                sscanf(yytext, "%f", &tmp);
                                 yylval.fVal = tmp;
                                 return FLOAT; 
                               }                              
@@ -87,7 +94,7 @@ using namespace std;
                                 int tmp;                                                          
                                 sscanf(yytext, "%d", &tmp);
                                 yylval.iVal = tmp; 
-                                return INT; 
+                                return INTEGER; 
                               }
 
 %%

@@ -55,30 +55,30 @@ using namespace std;
 ","                           {return COMMA;}
 ":"                           {return COLON;}
 "="                           {return ASSIGN;}       /*赋值*/   
-"+="		                    	{return ADD_ASSIGN;}
+"+="                          {return ADD_ASSIGN;}
 "-="                          {return SUB_ASSIGN;}
-"*="                    			{return MUL_ASSIGN;}
-"/="	                    		{return DIV_ASSIGN;}
-"%="		                    	{return MOD_ASSIGN;}
-"&="	                    		{return AND_ASSIGN;}
-"^="		                    	{return XOR_ASSIGN;}
-"|="		                    	{return OR_ASSIGN;}
+"*="                          {return MUL_ASSIGN;}
+"/="                          {return DIV_ASSIGN;}
+"%="                          {return MOD_ASSIGN;}
+"&="                          {return AND_ASSIGN;}
+"^="                          {return XOR_ASSIGN;}
+"|="                          {return OR_ASSIGN;}
 "+"                           {return OP_PLUS;}           
 "-"                           {return OP_MINUS;}           
 "*"                           {return OP_MUL;}           
 "/"                           {return OP_DIV;} 
 "%"                           {return OP_MOD;} 
-">>"		                    	{return OP_RIGHT;}
-"<<"		                    	{return OP_LEFT;}
-"++"		                    	{return OP_INC;}      /*self-increase*/
-"--"		                    	{return OP_DEC;}      /*self-decrease*/
-"->"			                    {return OP_PTR;}      /*pointer or return type*/ 
-"&&"	                    		{return OP_AND;}
-"||"                    			{return OP_OR;}
+">>"                          {return OP_RIGHT;}
+"<<"                          {return OP_LEFT;}
+"++"                          {return OP_INC;}      /*self-increase*/
+"--"                          {return OP_DEC;}      /*self-decrease*/
+"->"                          {return OP_PTR;}      /*pointer or return type*/ 
+"&&"                          {return OP_AND;}
+"||"                          {return OP_OR;}
 "<"                           {return OP_LT;}       /*less than*/ 
-"<="                    			{return OP_LE;}
+"<="                          {return OP_LE;}
 ">"                           {return OP_GT;}       /*greater than*/           
-">="		                    	{return OP_GE;}
+">="                          {return OP_GE;}
 "=="                          {return OP_EQ;}         
 "!="                          {return OP_NE;}  
 \n                            {return NEWLINE;}                              

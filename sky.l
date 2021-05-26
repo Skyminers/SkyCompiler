@@ -12,19 +12,22 @@ using namespace std;
 %%
 
   /*the process of Lexical analysis*/
-"var"                         {return KW_VAR;}  
-"let"                         {return KW_LET;} 
-"new"                         {return KW_NEW;}
-"delete"                      {return KW_DELETE;}
-"func"                        {return KW_FUNCTION;} 
-"if"                          {return KW_IF;}
-"for"                         {return KW_FOR;} 
-"while"                       {return KW_WHILE;}
-"do"                          {return KW_DO;}
-"class"                       {return KW_CLASS;}
-"init"                        {return KW_INIT;}         /*构造函数*/
-"del"                         {return KW_DEL;}          /*析构函数*/
-"this"                        {return KW_THIS;}         /*自身指针*/
+"var"                         {return VAR;}  
+"let"                         {return LET;} 
+"new"                         {return NEW;}
+"delete"                      {return DELETE;}
+"func"                        {return FUNCTION;}
+"return"                      {return RETURN;} 
+"if"                          {return IF;}
+"for"                         {return FOR;} 
+"while"                       {return WHILE;}
+"do"                          {return DO;}
+"continue"                    {return CONTINUE;}
+"break"                       {return BREAK;}
+"class"                       {return CLASS;}
+"init"                        {return INIT;}         /*构造函数*/
+"del"                         {return DEL;}          /*析构函数*/
+"this"                        {return THIS;}         /*自身指针*/
 
 "int"                         {return TYPE_INT;}
 "int*"                        {return TYPE_INT_POINTER;}
@@ -39,30 +42,46 @@ using namespace std;
 "bool"                        {return TYPE_BOOL;} 
 "bool*"                       {return TYPE_BOOL_POINTER;} 
 
-
-"{"                           {return SYM_LCB;}       /*left curly brace*/
-"}"                           {return SYM_RCB;}       /*right curly brace*/
-"("                           {return SYM_LP;}        /*left parenthesis*/
-")"                           {return SYM_RP;}        /*right parenthesis*/
-"["                           {return SYM_LB;}        /*left bracket*/                
-"]"                           {return SYM_RB;}        /*right bracket*/                
-"//"                          {return SYM_SLC;}       /*single-line comment*/
-"/*"                          {return SYM_BoC;}       /*beginning of comment*/
-"*/"                          {return SYM_EoC;}       /*end of comment*/
-"."                           {return SYM_DOT; }
-","                           {return SYM_COMMA;}
-":"                           {return SYM_COLON;}
-"+"                           {return SYM_PLUS;}           
-"-"                           {return SYM_MINUS;}           
-"*"                           {return SYM_MUL;}           
-"/"                           {return SYM_DIV;} 
-"%"                           {return SYM_MOD;}           
-">"                           {return SYM_MT;}          /*more than*/           
-"<"                           {return SYM_LT;}          /*less than*/           
-"=="                          {return SYM_ET;}          /*equal to*/  
-"->"                          {return SYM_RT;}          /*return type*/        
-"="                           {return SYM_ASSIGN;}       /*赋值*/   
-\n                            {return SYM_NEWLINE;}                              
+"{"                           {return LCB;}       /*left curly brace*/
+"}"                           {return RCB;}       /*right curly brace*/
+"("                           {return LP;}        /*left parenthesis*/
+")"                           {return RP;}        /*right parenthesis*/
+"["                           {return LB;}        /*left bracket*/                
+"]"                           {return RB;}        /*right bracket*/                
+"//"                          {return SLC;}       /*single-line comment*/
+"/*"                          {return BoC;}       /*beginning of comment*/
+"*/"                          {return EoC;}       /*end of comment*/
+"."                           {return DOT; }
+","                           {return COMMA;}
+":"                           {return COLON;}
+"="                           {return ASSIGN;}       /*赋值*/   
+"+="		                    	{return ADD_ASSIGN;}
+"-="                          {return SUB_ASSIGN;}
+"*="                    			{return MUL_ASSIGN;}
+"/="	                    		{return DIV_ASSIGN;}
+"%="		                    	{return MOD_ASSIGN;}
+"&="	                    		{return AND_ASSIGN;}
+"^="		                    	{return XOR_ASSIGN;}
+"|="		                    	{return OR_ASSIGN;}
+"+"                           {return OP_PLUS;}           
+"-"                           {return OP_MINUS;}           
+"*"                           {return OP_MUL;}           
+"/"                           {return OP_DIV;} 
+"%"                           {return OP_MOD;} 
+">>"		                    	{return OP_RIGHT;}
+"<<"		                    	{return OP_LEFT;}
+"++"		                    	{return OP_INC;}      /*self-increase*/
+"--"		                    	{return OP_DEC;}      /*self-decrease*/
+"->"			                    {return OP_PTR;}      /*pointer or return type*/ 
+"&&"	                    		{return OP_AND;}
+"||"                    			{return OP_OR;}
+"<"                           {return OP_LT;}       /*less than*/ 
+"<="                    			{return OP_LE;}
+">"                           {return OP_GT;}       /*greater than*/           
+">="		                    	{return OP_GE;}
+"=="                          {return OP_EQ;}         
+"!="                          {return OP_NE;}  
+\n                            {return NEWLINE;}                              
 
 \'.\'                         {
                                 yylval.cVal = yytext[1];

@@ -5,38 +5,63 @@
 #include "nodeList.h"
 #include "convertEngine.h"
 
-Value ASTNode::convertToCode() {
-
+Value* ASTNode::convertToCode() {
+    return nullptr;
 }
 
-Value ConstValue::convertToCode() {
-
+Value* ConstValue::convertToCode() {
+    return nullptr;
 }
 
-Value SkyInt::convertToCode() {
-
+Value* SkyInt::convertToCode() {
+    return nullptr;
 }
 
-Value SkyDouble::convertToCode() {
-
+Value* SkyDouble::convertToCode() {
+    return nullptr;
 }
 
-Value SkyString::convertToCode() {
-
+Value *SkyFloat::convertToCode() {
+    return ConstValue::convertToCode();
 }
 
-Value SkyBool::convertToCode() {
-
+Value *SkyChar::convertToCode() {
+    return ConstValue::convertToCode();
 }
 
-Value SkyType::convertToCode() {
 
+Value* SkyString::convertToCode() {
+    return nullptr;
 }
 
-Value SkyArrayType::convertToCode() {
-
+Value* SkyBool::convertToCode() {
+    return nullptr;
 }
 
-Value SkyRangeType::convertToCode() {
+Value* SkyType::convertToCode() {
+    return nullptr;
+}
 
+Value* SkyArrayType::convertToCode() {
+    return nullptr;
+}
+
+Value* SkyRangeType::convertToCode() {
+    return nullptr;
+}
+
+Value *SkyRangeType::mapIndex() {
+    return nullptr;
+}
+
+Value *Identifier::convertToCode() {
+    return nullptr;
+}
+
+Value *VarDec::convertToCode() {
+    return nullptr;
+}
+
+Value *ConstDec::convertToCode() {
+    return nullptr;
 }

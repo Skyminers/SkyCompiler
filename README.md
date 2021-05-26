@@ -6,7 +6,7 @@ Sky 语言编译器
 组成员:
 
 * 刘一辰 3180102886
-* 黄海峰 3180102339
+* 黄海烽 3180102339
 * 周思颖 3180104714
 
 ## 设计要点:
@@ -25,7 +25,7 @@ Sky 语言编译器
     - func funcName(varName: type,varName: type) [-> returnType] {} (若无 return Type 则无返回值)
     - 编译器检查：若函数定义了返回值却没有返回则报错
 8. 数组:
-    - 定义: var a : int[size] (不允许 let 定义)
+    - 定义: var a : int[size] (不允许 let 定义), 下标范围为[0..size-1]
     - 使用: a[i] 可以取出第 i 位的。
 9. 动态空间分配：
     - 分配: var a = new int[233], var a = new int, var a = new Object()

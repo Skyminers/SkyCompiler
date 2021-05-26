@@ -62,6 +62,7 @@ using namespace std;
 "=="                          {return SYM_ET;}          /*equal to*/  
 "->"                          {return SYM_RT;}          /*return type*/        
 "="                           {return SYM_ASSIGN;}       /*赋值*/   
+\n                            {return SYM_NEWLINE;}                              
 
 \'.\'                         {
                                 yylval.cVal = yytext[1];

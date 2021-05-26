@@ -40,7 +40,7 @@ extern int yylex();
         SYM_DOT SYM_COMMA SYM_COLON
         SYM_PLUS SYM_MINUS SYM_MUL SYM_DIV SYM_MOD
         SYM_MT SYM_LT SYM_ET
-        SYM_RT SYM_ASSIGN
+        SYM_RT SYM_ASSIGN SYM_NEWLINE
 
 
 %%

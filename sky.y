@@ -27,20 +27,20 @@ extern int yylex();
 %token<sVal> STRING
 %token<bVal> BOOLEAN
 
-%token  KW_VAR KW_LET KW_NEW KW_DELETE
-        KW_FUNCTION
-        KW_IF KW_ELSE KW_FOR KW_WHILE KW_DO
-        KW_CLASS KW_INIT KW_DEL KW_THIS
+%token  VAR LET NEW DELETE
+        FUNCTION
+        IF ELSE FOR WHILE DO
+        CLASS INIT DEL THIS
         TYPE_INT TYPE_INT_POINTER TYPE_INT_64 TYPE_INT_64_POINTER
         TYPE_CHAR TYPE_CHAR_POINTER
         TYPE_FLOAT TYPE_FLOAT_POINTER TYPE_DOUBLE TYPE_DOUBLE_POINTER
         TYPE_BOOL TYPE_BOOL_POINTER
-        SYM_LCB SYM_RCB SYM_LP SYM_RP SYM_LB SYM_RB
-        SYM_SLC SYM_BoC SYM_EoC
-        SYM_DOT SYM_COMMA SYM_COLON
-        SYM_PLUS SYM_MINUS SYM_MUL SYM_DIV SYM_MOD
-        SYM_MT SYM_LT SYM_ET
-        SYM_RT SYM_ASSIGN SYM_NEWLINE
+        LCB RCB LP RP LB RB
+        SLC BoC EoC
+        DOT COMMA COLON
+        PLUS MINUS MUL DIV MOD
+        MT LT ET
+        RT ASSIGN NEWLINE
 
 %%
 
@@ -53,14 +53,14 @@ global_area:
     | ;
 
 const_declaration:
-    KW_LET const_list
+    LET const_list
     | ;
 
 const_list:
-    const_list SYM_COMMA const_expr
+    const_list COMMA const_expr
     | const_expr ;
 
-const_expr: const_name SYM_ASSIGN const_value ;
+const_expr: const_name ASSIGN const_value ;
 
 const_value:
     INTEGER
@@ -71,16 +71,16 @@ const_value:
     | STRING ;
 
 var_declaration:
-    KW_VAR var_list
+    VAR var_list
     | ;
 
 var_list:
-    var_list SYM_COMMA var_expr
+    var_list COMMA var_expr
     | var_expr ;
 
 var_expr:
-    var_name SYM_ASSIGN expression
-    | var_name SYM_COLON var_type ;
+    var_name ASSIGN expression
+    | var_name COLON var_type ;
 
 var_type:
     TYPE_INT | TYPE_INT_POINTER | TYPE_INT_64 | TYPE_INT_64_POINTER
@@ -90,7 +90,7 @@ var_type:
 
 func_declaration: ;
 
-main_func: return_type MAIN SYM_LCB statement_list SYM_RCB ;
+main_func: return_type MAIN LCB statement_list RCB ;
 
 statement_list:
     statement_list statement
@@ -108,12 +108,12 @@ statement:
     | break_statement
     | return_statement ;
 
-compound_statement: SYM_LCB statement_list SYM_RCB ;
+compound_statement: LCB statement_list RCB ;
 
-branch_statement: KW_IF SYM_LP expression SYM_RP statement else_part ;
+branch_statement: IF LP expression RP statement else_part ;
 
 else_part:
-    KW_ELSE statement
+    ELSE statement
     | ;
 
 

@@ -55,6 +55,7 @@ using namespace std;
 "."                           {return DOT; }
 ","                           {return COMMA;}
 ":"                           {return COLON;}
+";"                           {return SEMICOLON;}
 "="                           {return ASSIGN;}       /*赋值*/   
 "+="                          {return ADD_ASSIGN;}
 "-="                          {return SUB_ASSIGN;}
@@ -64,6 +65,7 @@ using namespace std;
 "&="                          {return AND_ASSIGN;}
 "^="                          {return XOR_ASSIGN;}
 "|="                          {return OR_ASSIGN;}
+"!"                           {return OP_NOT;}
 "+"                           {return OP_PLUS;}           
 "-"                           {return OP_MINUS;}           
 "*"                           {return OP_MUL;}           
@@ -81,7 +83,7 @@ using namespace std;
 ">"                           {return OP_GT;}       /*greater than*/           
 ">="                          {return OP_GE;}
 "=="                          {return OP_EQ;}         
-"!="                          {return OP_NE;}  
+"!="                          {return OP_NE;}
 \n                            {return NEWLINE;}                              
 
 \'.\'                         {

@@ -12,6 +12,7 @@ using namespace std;
 %%
 
   /*the process of Lexical analysis*/
+"main"                        {return MAIN;}
 "var"                         {return VAR;}  
 "let"                         {return LET;} 
 "new"                         {return NEW;}
@@ -52,6 +53,7 @@ using namespace std;
 "."                           {return('.');}
 ","                           {return(',');}
 ":"                           {return(':');}
+";"                           {return(';');}
 "="                           {return('=');}        /*赋值*/   
 "+="                          {return ADD_ASSIGN;}
 "-="                          {return SUB_ASSIGN;}
@@ -61,6 +63,7 @@ using namespace std;
 "&="                          {return AND_ASSIGN;}
 "^="                          {return XOR_ASSIGN;}
 "|="                          {return OR_ASSIGN;}
+"!"                           {return OP_NOT;}
 "+"                           {return OP_PLUS;}           
 "-"                           {return OP_MINUS;}           
 "*"                           {return OP_MUL;}           
@@ -78,7 +81,7 @@ using namespace std;
 ">"                           {return OP_GT;}       /*greater than*/           
 ">="                          {return OP_GE;}
 "=="                          {return OP_EQ;}         
-"!="                          {return OP_NE;}  
+"!="                          {return OP_NE;}
 \n                            {return NEWLINE;}                              
 "//"                          {return SLC;}        /*single-line comment*/
 "/*"                          {return BoC;}        /*beginning of comment*/

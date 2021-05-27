@@ -43,19 +43,16 @@ using namespace std;
 "bool"                        {return TYPE_BOOL;} 
 "bool*"                       {return TYPE_BOOL_POINTER;} 
 
-"{"                           {return LCB;}       /*left curly brace*/
-"}"                           {return RCB;}       /*right curly brace*/
-"("                           {return LP;}        /*left parenthesis*/
-")"                           {return RP;}        /*right parenthesis*/
-"["                           {return LB;}        /*left bracket*/                
-"]"                           {return RB;}        /*right bracket*/                
-"//"                          {return SLC;}       /*single-line comment*/
-"/*"                          {return BoC;}       /*beginning of comment*/
-"*/"                          {return EoC;}       /*end of comment*/
-"."                           {return DOT; }
-","                           {return COMMA;}
-":"                           {return COLON;}
-"="                           {return ASSIGN;}       /*赋值*/   
+"{"                           {return('{');}        /*left curly brace*/
+"}"                           {return('}');}        /*right curly brace*/
+"("                           {return('(');}        /*left parenthesis*/
+")"                           {return(')');}        /*right parenthesis*/
+"["                           {return('[');}        /*left bracket*/                
+"]"                           {return(']');}        /*right bracket*/                
+"."                           {return('.');}
+","                           {return(',');}
+":"                           {return(':');}
+"="                           {return('=');}        /*赋值*/   
 "+="                          {return ADD_ASSIGN;}
 "-="                          {return SUB_ASSIGN;}
 "*="                          {return MUL_ASSIGN;}
@@ -83,6 +80,9 @@ using namespace std;
 "=="                          {return OP_EQ;}         
 "!="                          {return OP_NE;}  
 \n                            {return NEWLINE;}                              
+"//"                          {return SLC;}        /*single-line comment*/
+"/*"                          {return BoC;}        /*beginning of comment*/
+"*/"                          {return EoC;}        /*end of comment*/
 
 \'.\'                         {
                                 yylval.cVal = yytext[1];

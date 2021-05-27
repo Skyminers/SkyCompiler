@@ -39,9 +39,10 @@ extern int yylex();
         LCB RCB LP RP LB RB
         SLC BoC EoC
         DOT COMMA COLON
-        PLUS MINUS MUL DIV MOD
-        MT LT ET
-        RT ASSIGN NEWLINE
+        ASSIGN ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
+        OP_PLUS OP_MINUS OP_MUL OP_DIV OP_MOD OP_RIGHT OP_LEFT OP_INC OP_DEC OP_PTR OP_AND OP_OR
+        OP_LT OP_LE OP_GT OP_GE OP_EQ OP_NE
+        NEWLINE
 
 %%
 
@@ -87,9 +88,21 @@ var_type:
     TYPE_INT | TYPE_INT_POINTER | TYPE_INT_64 | TYPE_INT_64_POINTER
     | TYPE_CHAR | TYPE_CHAR_POINTER
     | TYPE_FLOAT | TYPE_FLOAT_POINTER | TYPE_DOUBLE | TYPE_DOUBLE_POINTER
-    | TYPE_BOOL | TYPE_BOOL_POINTER
+    | TYPE_BOOL | TYPE_BOOL_POINTER ;
 
-func_declaration: ;
+func_declaration: FUNCTION func_name LP parameter_list RP LB OP_PTR return_type RB LCB statement_list RCB ;
+
+parameter_list: 
+    parameter_list COMMA var_name COLON var_type
+    | var_name COLON var_type 
+    | ;
+
+return_type: 
+    TYPE_INT | TYPE_INT_POINTER | TYPE_INT_64 | TYPE_INT_64_POINTER
+    | TYPE_CHAR | TYPE_CHAR_POINTER
+    | TYPE_FLOAT | TYPE_FLOAT_POINTER | TYPE_DOUBLE | TYPE_DOUBLE_POINTER
+    | TYPE_BOOL | TYPE_BOOL_POINTER 
+    | ;
 
 main_func: return_type MAIN LCB statement_list RCB ;
 

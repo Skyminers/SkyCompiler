@@ -111,7 +111,7 @@ using namespace std;
 
 [0-9]+\.[0-9]+[fF]            { 
                                 float tmp;
-                                sscanf(yytext, "%f", &tmp);
+                                sscanf(yytext, "%f[fF]", &tmp);
                                 yylval.fVal = tmp;
                                 return FLOAT; 
                               }                              

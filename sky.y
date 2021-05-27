@@ -29,7 +29,7 @@ extern int yylex();
 %token<bVal> BOOLEAN
 
 %token  MAIN VAR LET NEW DELETE
-        FUNCTION BREAK RETURN
+        FUNCTION BREAK CONTINUE RETURN
         IF ELSE FOR WHILE DO
         CLASS INIT DEL THIS
         TYPE_INT TYPE_INT_POINTER TYPE_INT_64 TYPE_INT_64_POINTER
@@ -108,18 +108,30 @@ var_type
     | TYPE_BOOL_POINTER
     ;
 
-func_declaration: FUNCTION func_name '(' parameter_list ')' '[' OP_PTR return_type ']' '{' statement_list '}' ;
+func_declaration
+    : FUNCTION func_name '(' parameter_list ')' '[' OP_PTR return_type ']' '{' statement_list '}' 
+    ;
 
-parameter_list:
+parameter_list
+    :
     parameter_list ',' var_name ':' var_type
     | var_name ':' var_type
-    | ;
+    | 
+    ;
 
 return_type:
-    TYPE_INT | TYPE_INT_POINTER | TYPE_INT_64 | TYPE_INT_64_POINTER
-    | TYPE_CHAR | TYPE_CHAR_POINTER
-    | TYPE_FLOAT | TYPE_FLOAT_POINTER | TYPE_DOUBLE | TYPE_DOUBLE_POINTER
-    | TYPE_BOOL | TYPE_BOOL_POINTER
+    TYPE_INT 
+    | TYPE_INT_POINTER 
+    | TYPE_INT_64 
+    | TYPE_INT_64_POINTER
+    | TYPE_CHAR 
+    | TYPE_CHAR_POINTER
+    | TYPE_FLOAT 
+    | TYPE_FLOAT_POINTER 
+    | TYPE_DOUBLE 
+    | TYPE_DOUBLE_POINTER
+    | TYPE_BOOL 
+    | TYPE_BOOL_POINTER
     | ;
 
 main_func
@@ -137,7 +149,7 @@ statement
     | iteration_statement
     | expression
     | jump_statement
-    | '='_statement
+    | assign_statement
     | print_statement
     | var_declaration
     | const_declaration
@@ -154,12 +166,14 @@ branch_statement
 
 iteration_statement
     : WHILE '(' expression ')' statement
+    | DO statement WHILE '(' expression ')'
     | FOR '(' expression_statement expression_statement ')' statement
     | FOR '(' expression_statement expression_statement expression ')' statement
     ;
 
 jump_statement
     : BREAK
+    | CONTINUE
     | RETURN
     | RETURN expression
     ;
@@ -198,7 +212,52 @@ expression_list
     |
     ;
 
+assign_statement
+    : var_name assign_operator expression
 
+assign_operator
+    : OR_ASSIGN
+    | ADD_ASSIGN
+    | AND_ASSIGN
+    | DIV_ASSIGN
+    | MOD_ASSIGN
+    | MUL_ASSIGN
+    | SUB_ASSIGN
+    | XOR_ASSIGN
+    | '='
+    ;
+
+print_statement
+    : PRINTF '(' print_content ')'
+
+print_content
+    : content_var_list
+    | IDENTIFIER
+    ;
+
+content_var_list
+    : var_type_list ',' var_name_list 
+    ;
+
+var_type_list
+    : var_type var_type_list
+    ;
+
+var_name_list
+    : var_name var_name_list
+    ;
+
+const_name
+    : STRING
+    ;    
+
+var_name
+    : STRING
+    ;
+
+func_name
+    : STRING
+    ;
 
 %%
 

@@ -18,6 +18,7 @@ extern int yylex();
     double dVal;
     char cVal;
     string sVal;
+    bool bVal;
 }
 
 %token<iVal> INTEGER

@@ -19,6 +19,7 @@ using namespace std;
 "func"                        {return FUNCTION;}
 "return"                      {return RETURN;} 
 "if"                          {return IF;}
+"else"                        {return ELSE;}
 "for"                         {return FOR;} 
 "while"                       {return WHILE;}
 "do"                          {return DO;}
@@ -93,8 +94,11 @@ using namespace std;
                                 return STRING; 
                               }
 
-"true"|"false"                {
-                                yylval.sVal = new std::string(yytext, yyleng); 
+  /*Only lowercase true and false are allowed.*/
+"true"|"false"                {   
+                                bool tmp;
+                                sscanf(yytext, "%d", &tmp);
+                                yylval.bVal = tmp;
                                 return BOOLEAN;  
                               }  
 

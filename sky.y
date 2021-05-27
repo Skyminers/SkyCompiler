@@ -28,7 +28,7 @@ extern int yylex();
 %token<sVal> STRING IDENTIFIER
 %token<bVal> BOOLEAN
 
-%token  VAR LET NEW DELETE
+%token  MAIN VAR LET NEW DELETE
         FUNCTION BREAK RETURN
         IF ELSE FOR WHILE DO
         CLASS INIT DEL THIS
@@ -125,7 +125,7 @@ return_type:
     | ;
 
 main_func
-    : return_type MAIN LCB statement_list RCB
+    : FUNCTION MAIN LP RP OP_PTR return_type LCB statement_list RCB
     ;
 
 statement_list

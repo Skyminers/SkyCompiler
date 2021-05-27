@@ -12,6 +12,7 @@ using namespace std;
 %%
 
   /*the process of Lexical analysis*/
+"main"                        {return MAIN;}
 "var"                         {return VAR;}  
 "let"                         {return LET;} 
 "new"                         {return NEW;}

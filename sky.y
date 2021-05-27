@@ -19,7 +19,18 @@ extern int yylex();
     char cVal;
     string sVal;
     bool bVal;
+    Program *program;
+    GlobalArea *globalArea;
+    ConstDec *constDec;
+    ConstDecList *constDecList;
+    ConstValue *constValue;
 }
+
+%type<program>                          program
+%type<globalArea>                       global_area
+%type<constDec>                         const_expr
+%type<constDecList>                     const_declaration const_list
+%type<constValue>                       const_value
 
 %token<iVal> INTEGER
 %token<fVal> FLOAT
@@ -45,37 +56,36 @@ extern int yylex();
 %%
 
 program
-    : global_area main_func
+    : global_area main_func                                         { $$ = new Program($1, $2); }
     ;
 
 global_area
-    : global_area const_declaration
-    | global_area var_declaration
-    | global_area func_declaration
-    |
+    : global_area const_declaration                                 { $$ = $1; $$->addConstDec($2); }
+    | global_area var_declaration                                   { $$ = $1; $$->addVarDec($2); }
+    | global_area func_declaration                                  { $$ = $1; $$->addFuncDec($2); }
+    |                                                               { $$ = new GlobalArea(); }
     ;
 
 const_declaration
-    : LET const_list
-    |
+    : LET const_list                                                { $$ = $2; }
     ;
 
 const_list
-    : const_list ',' const_expr
-    | const_expr
+    : const_list ',' const_expr                                     { $$ = $1; $$->push_back($3); }
+    | const_expr                                                    { $$ = new ConstDecList(); $$->push_back($1); }
     ;
 
 const_expr
-    : const_name '=' const_value
+    : const_name '=' const_value                                    { $$ = new ConstDec($1, $3); }
     ;
 
 const_value
-    : INTEGER
-    | FLOAT
-    | DOUBLE
-    | CHAR
-    | BOOLEAN
-    | STRING
+    : INTEGER                                                       { $$ = new SkyInt($1); }
+    | FLOAT                                                         { $$ = new SkyFloat($1); }
+    | DOUBLE                                                        { $$ = new SkyDouble($1); }
+    | CHAR                                                          { $$ = new SkyChar($1); }
+    | BOOLEAN                                                       { $$ = new SkyBool($1); }
+    | STRING                                                        { $$ = new SkyString($1); }
     ;
 
 var_declaration

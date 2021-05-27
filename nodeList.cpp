@@ -65,3 +65,15 @@ Value *VarDec::convertToCode() {
 Value *ConstDec::convertToCode() {
     return nullptr;
 }
+
+Value *Parameter::convertToCode() {
+    return nullptr;
+}
+
+Value *FuncDec::convertToCode() {
+    return nullptr;
+}
+
+Value *Program::convertToCode() {
+    return nullptr;
+}

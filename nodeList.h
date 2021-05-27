@@ -8,33 +8,71 @@
 #include "llvm/IR/Value.h"
 #include "defineList.h"
 #include <iostream>
+#include <vector>
 
 using namespace llvm;
 using namespace std;
 
 class SkyType;
 class Identifier;
+class Parameter;
+class StatNode;
+class CompoundStat;
+class FuncDec;
+class ConstDec;
+class VarDec;
+class GlobalArea;
 
 typedef vector<Identifier*> IdentifierList;
+typedef vector<Parameter*>  ParaList;
+typedef vector<StatNode*>   StatList;
+typedef vector<FuncDec*>    FuncDecList;
+typedef vector<ConstDec*>   ConstDecList;
+typedef vector<VarDec*>     VarDecList;
 
-enum SkyDataType {
+
+enum SkyVarType {
     SKY_INT,
     SKY_STRING,
     SKY_BOOL,
 //    SKY_INT64,
     SKY_DOUBLE,
-//    SKY_FLOAT
+    SKY_FLOAT,
+    SKY_CHAR
 };
 
 enum SkyTypes {
     SKY_ARRAY,
     SKY_RANGE,
     SKY_VOID,
+    SKY_VAR,
 //    SKY_ENUM,
 //    SKY_RECORD,
 //    SKY_ENUM_RANGE,
 //    SKY_USER_DEFINE,
-//    SKY_BUILT_IN
+};
+
+enum BinaryOperator {
+    OP_PLUS,
+    OP_MINUS,
+    OP_MUL,
+    OP_DIV,
+    OP_EQ,
+    OP_NE,
+    OP_GT,
+    OP_LT,
+    OP_GE,
+    OP_LE,
+    OP_AND,
+    OP_OR,
+    OP_XOR,
+    OP_MOD
+};
+
+enum AssignType {
+    ID_ASSIGN,
+    ARRAY_ASSIGN,
+    CLASS_ASSIGN
 };
 
 union ConstValueUnion{
@@ -52,15 +90,6 @@ public:
     virtual ~ASTNode() = default;
 };
 
-class Program: public ASTNode {
-public:
-    Program() = default;
-    Value *convertToCode() override;
-
-private:
-
-};
-
 class ExprNode: public ASTNode {
 
 };
@@ -72,14 +101,39 @@ public:
 //    BasicBlock *afterBB{};
 };
 
-class ListNode: public ASTNode {
+class Program: public StatNode {
+public:
+    Program(GlobalArea *globalArea, FuncDec *mainFunc): globalArea(globalArea), mainFunc(mainFunc) { }
+    Value *convertToCode() override;
 
+private:
+    GlobalArea* globalArea;
+    FuncDec *mainFunc;
+};
+
+class GlobalArea: public StatNode {
+public:
+    GlobalArea() = default;
+    void addConstDec(ConstDecList *cd) {
+        constDecList->insert(constDecList->end(), cd->begin(), cd->end());
+    }
+    void addVarDec(VarDecList *vd) {
+        varDecList->insert(varDecList->end(), vd->begin(), vd->end());
+    }
+    void addFuncDec(FuncDecList *fd) {
+        funcDecList->insert(funcDecList->end(), fd->begin(), fd->end());
+    }
+
+private:
+    ConstDecList *constDecList;
+    VarDecList *varDecList;
+    FuncDecList *funcDecList;
 };
 
 class ConstValue: public ExprNode{
 public:
     Value *convertToCode() override;
-    virtual SkyDataType getType() = 0;
+    virtual SkyVarType getType() = 0;
     virtual ConstValueUnion getValue() = 0;
     virtual ConstValue *operator-() = 0;
 };
@@ -89,7 +143,7 @@ public:
     explicit SkyInt(int v) {
         myInt.iVal = v;
     }
-    SkyDataType getType() override {
+    SkyVarType getType() override {
         return SKY_INT;
     }
     ConstValueUnion getValue() override {
@@ -109,7 +163,7 @@ public:
     explicit SkyDouble(double v) {
         myDouble.dVal = v;
     }
-    SkyDataType getType() override {
+    SkyVarType getType() override {
         return SKY_DOUBLE;
     }
     ConstValueUnion getValue() override {
@@ -129,8 +183,8 @@ public:
     explicit SkyFloat(float v) {
         myFloat.fVal = v;
     }
-    SkyDataType getType() override {
-        return SKY_DOUBLE;
+    SkyVarType getType() override {
+        return SKY_FLOAT;
     }
     ConstValueUnion getValue() override {
         return myFloat;
@@ -149,8 +203,8 @@ public:
     explicit SkyChar(float v) {
         myChar.cVal = v;
     }
-    SkyDataType getType() override {
-        return SKY_DOUBLE;
+    SkyVarType getType() override {
+        return SKY_CHAR;
     }
     ConstValueUnion getValue() override {
         return myChar;
@@ -173,7 +227,7 @@ public:
     ~SkyString() override {
         delete[] myString.sVal;
     }
-    SkyDataType getType() override {
+    SkyVarType getType() override {
         return SKY_STRING;
     }
     ConstValueUnion getValue() override {
@@ -190,7 +244,7 @@ public:
     explicit SkyBool(bool v) {
         myBool.bVal = v;
     }
-    SkyDataType getType() override {
+    SkyVarType getType() override {
         return SKY_BOOL;
     }
     ConstValueUnion getValue() override {
@@ -203,13 +257,6 @@ public:
 
 private:
     ConstValueUnion myBool{};
-};
-
-class ConstValueDeclaration: public StatNode {
-public:
-
-private:
-
 };
 
 class SkyArrayType: public StatNode {
@@ -247,6 +294,7 @@ class SkyType: public StatNode {
 public:
     explicit SkyType(SkyArrayType *arrayType): arrayType(arrayType), myType(SKY_ARRAY) { }
     explicit SkyType(SkyRangeType *rangeType): rangeType(rangeType), myType(SKY_RANGE) { }
+    explicit SkyType(SkyVarType varType): varType(varType), myType(SKY_VAR) { }
     SkyType(): myType(SKY_VOID) { }
     Value *convertToCode() override;
 //    Type* toLLVMType();
@@ -255,6 +303,7 @@ public:
 private:
     SkyArrayType *arrayType{};
     SkyRangeType *rangeType{};
+    SkyVarType varType;
     SkyTypes myType;
 };
 
@@ -303,12 +352,102 @@ private:
 
 class FuncDec: public StatNode {
 public:
-    FuncDec(Identifier *funcName)
+    FuncDec(Identifier *name, ParaList *paraList, SkyType *returnType): myId(name), myParaList(paraList), myRetType(returnType) { }
+    FuncDec(Identifier *name, ParaList *paraList): myId(name), myParaList(paraList) {
+        myRetType = new SkyType();
+    }
+    Value *convertToCode() override;
+
+private:
+    Identifier *myId;
+    ParaList *myParaList;
+    SkyType *myRetType;
+    CompoundStat *funcBody;
 };
 
 class Parameter: public StatNode {
 public:
-    Parameter(IdentifierList *idList, bool )
+    Parameter(IdentifierList *idList, bool isVar): myIdList(idList), isVar(isVar) { }
+    Value *convertToCode() override;
+
+private:
+    IdentifierList *myIdList;
+    bool isVar;
+};
+
+class AssignStat: public StatNode {
+public:
+    AssignStat(Identifier *id, ExprNode *expr): targetId(id), expr(expr), type(ID_ASSIGN) { }
+    AssignStat(Identifier *id, ExprNode *subInd, ExprNode *expr): targetId(id), subInd(subInd), expr(expr), type(ARRAY_ASSIGN) { }
+    AssignStat(Identifier *id, Identifier *cid, ExprNode *expr): targetId(id), childId(cid), expr(expr), type(CLASS_ASSIGN) { }
+
+private:
+    Identifier *targetId, *childId;
+    ExprNode *expr, *subInd;
+    AssignType type;
+};
+
+class IfStat: public StatNode {
+public:
+    IfStat(ExprNode *condExpr, StatNode *thenStat, StatNode *elseStat): condExpr(condExpr), thenStat(thenStat), elseStat(elseStat) { }
+    Value *convertToCode() override;
+
+private:
+    ExprNode *condExpr;
+    StatNode *thenStat, *elseStat;
+};
+
+class ForStat: public StatNode {
+public:
+    ForStat(ExprNode *forInit, ExprNode *forCond, ExprNode *forStep, StatNode *forBody):
+        forInit(forInit), forCond(forCond), forStep(forStep), forBody(forBody) { }
+
+private:
+    ExprNode *forInit, *forCond, *forStep;
+    StatNode *forBody;
+};
+
+class WhileStat: public StatNode {
+public:
+    WhileStat(ExprNode *whileCond, StatNode *whileBody): whileCond(whileCond), whileBody(whileBody) { }
+
+private:
+    ExprNode *whileCond;
+    StatNode *whileBody;
+};
+
+class CompoundStat: public StatNode {
+public:
+    CompoundStat(StatList *statList): statList(statList) { }
+
+private:
+    StatList *statList;
+};
+
+class BinaryExpr: public ExprNode {
+public:
+    BinaryExpr(ExprNode *left, BinaryOperator op, ExprNode *right): left(left), op(op), right(right) { }
+
+private:
+    ExprNode *left, *right;
+    BinaryOperator op;
+};
+
+class ArrayRef: public ExprNode {
+public:
+    ArrayRef(Identifier *id, ExprNode *subInd): id(id), subInd(subInd) { }
+
+private:
+    Identifier *id;
+    ExprNode *subInd;
+};
+
+class ClassRef: public ExprNode {
+public:
+    ClassRef(Identifier *id, Identifier *childId): id(id), childId(childId) { }
+
+private:
+    Identifier *id, *childId;
 };
 
 #endif

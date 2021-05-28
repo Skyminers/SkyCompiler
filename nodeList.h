@@ -32,13 +32,18 @@ typedef vector<VarDec*>     VarDecList;
 
 
 enum SkyVarType {
-    SKY_INT,
-    SKY_STRING,
-    SKY_BOOL,
-//    SKY_INT64,
-    SKY_DOUBLE,
-    SKY_FLOAT,
-    SKY_CHAR
+    TYPE_INT,
+    TYPE_INT_POINTER,
+    TYPE_INT_64,
+    TYPE_INT_64_POINTER,
+    TYPE_CHAR,
+    TYPE_CHAR_POINTER,
+    TYPE_FLOAT,
+    TYPE_FLOAT_POINTER,
+    TYPE_DOUBLE,
+    TYPE_DOUBLE_POINTER,
+    TYPE_BOOL,
+    TYPE_BOOL_POINTER
 };
 
 enum SkyTypes {
@@ -77,6 +82,7 @@ enum AssignType {
 
 union ConstValueUnion{
     int iVal;
+    long long i64Val;
     bool bVal;
     char cVal;
     char* sVal;
@@ -97,7 +103,7 @@ class ExprNode: public ASTNode {
 class StatNode: public ASTNode {
 public:
 //    void forward();
-//    void backword();
+    void backword();
 //    BasicBlock *afterBB{};
 };
 
@@ -144,7 +150,7 @@ public:
         myInt.iVal = v;
     }
     SkyVarType getType() override {
-        return SKY_INT;
+        return TYPE_INT;
     }
     ConstValueUnion getValue() override {
         return myInt;
@@ -158,13 +164,33 @@ private:
     ConstValueUnion myInt{};
 };
 
+class SkyInt64 : public ConstValue {
+public:
+    explicit SkyInt64(long long v) {
+        myInt64.i64Val = v;
+    }
+    SkyVarType getType() override {
+        return TYPE_INT_64;
+    }
+    ConstValueUnion getValue() override {
+        return myInt64;
+    }
+    ConstValue *operator-() override {
+        return new SkyInt64(-myInt64.i64Val);
+    }
+    Value *convertToCode() override;
+
+private:
+    ConstValueUnion myInt64{};
+};
+
 class SkyDouble: public ConstValue {
 public:
     explicit SkyDouble(double v) {
         myDouble.dVal = v;
     }
     SkyVarType getType() override {
-        return SKY_DOUBLE;
+        return TYPE_DOUBLE;
     }
     ConstValueUnion getValue() override {
         return myDouble;
@@ -184,7 +210,7 @@ public:
         myFloat.fVal = v;
     }
     SkyVarType getType() override {
-        return SKY_FLOAT;
+        return TYPE_FLOAT;
     }
     ConstValueUnion getValue() override {
         return myFloat;
@@ -204,7 +230,7 @@ public:
         myChar.cVal = v;
     }
     SkyVarType getType() override {
-        return SKY_CHAR;
+        return TYPE_CHAR;
     }
     ConstValueUnion getValue() override {
         return myChar;
@@ -218,17 +244,17 @@ private:
     ConstValueUnion myChar{};
 };
 
-class SkyString: public ConstValue {
+class SkyCharS: public ConstValue {
 public:
-    explicit SkyString(char* v) {
+    explicit SkyCharS(char* v) {
         myString.sVal = new char[strlen(v) + 1];
         strcpy(myString.sVal, v);
     }
-    ~SkyString() override {
+    ~SkyCharS() override {
         delete[] myString.sVal;
     }
     SkyVarType getType() override {
-        return SKY_STRING;
+        return TYPE_CHAR_POINTER;
     }
     ConstValueUnion getValue() override {
         return myString;
@@ -245,7 +271,7 @@ public:
         myBool.bVal = v;
     }
     SkyVarType getType() override {
-        return SKY_BOOL;
+        return TYPE_BOOL;
     }
     ConstValueUnion getValue() override {
         return myBool;
@@ -261,11 +287,12 @@ private:
 
 class SkyArrayType: public StatNode {
 public:
-    SkyArrayType(SkyType *type, SkyType *range): myType(type), myRange(range) { }
+    SkyArrayType(SkyType *type, int size): myType(type), size(size) { }
     Value *convertToCode() override;
 
 private:
-    SkyType *myType, *myRange;
+    SkyType *myType;
+    int size;
 };
 
 class SkyRangeType: public StatNode {
@@ -275,7 +302,7 @@ public:
     Value *mapIndex();
     size_t size() {
         int countSize = 0;
-        if (left->getType() == SKY_INT && left->getType() == right->getType()) {
+        if (left->getType() == TYPE_INT && left->getType() == right->getType()) {
             countSize = right->getValue().iVal - left->getValue().iVal;
             if (countSize <= 0) {
                 throw range_error("ERROR: left range > right range!");
@@ -321,12 +348,12 @@ private:
 
 class VarDec: public StatNode {
 public:
-    VarDec(IdentifierList *idList, SkyType *type): myIdList(idList), myType(type) { }
+    VarDec(Identifier *id, SkyType *type): myId(id), myType(type) { }
     Value *convertToCode() override;
 
 
 private:
-    IdentifierList *myIdList;
+    Identifier *myId;
     SkyType *myType;
 };
 

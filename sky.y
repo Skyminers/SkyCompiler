@@ -24,6 +24,11 @@ extern int yylex();
     ConstDec *constDec;
     ConstDecList *constDecList;
     ConstValue *constValue;
+    VarDec *varDec;
+    VarDecList *varDecList;
+    SkyTypes *skyTypes;
+    SkyVarType *skyVarType;
+    SkyArrayType *skyArrayType;
 }
 
 %type<program>                          program
@@ -31,6 +36,11 @@ extern int yylex();
 %type<constDec>                         const_expr
 %type<constDecList>                     const_declaration const_list
 %type<constValue>                       const_value
+%type<varDec>                           var_expr
+%type<varDecList>                       var_declaration var_list
+%type<skyTypes>                         type_declaration
+%type<skyVarType>                       var_type
+%type<skyArrayType>                     array_type_declaration
 
 %token<iVal> INTEGER
 %token<fVal> FLOAT
@@ -89,33 +99,41 @@ const_value
     ;
 
 var_declaration
-    : VAR var_list
-    |
+    : VAR var_list                                                  { $$ = $2; }
     ;
 
 var_list
-    : var_list ',' var_expr
-    | var_expr
+    : var_list ',' var_expr                                         { $$ = $1; $$->push_back($3); }
+    | var_expr                                                      { $$ = new VarDecList(); $$->push_back($1); }
     ;
 
 var_expr
     : var_name '=' expression
-    | var_name ':' var_type
+    | var_name ':' type_declaration                                 { $$ = new VarDec($1, $3); }
+    ;
+
+type_declaration
+    : var_type                                                      { $$ = new SkyType($1); }
+    | array_type_declaration                                        { $$ = new SkyType($1); }
+    ;
+
+array_type_declaration
+    : var_type '[' INTEGER ']'                                      { $$ = new SkyArrayType($1, $3); }
     ;
 
 var_type
-    : TYPE_INT
-    | TYPE_INT_POINTER
-    | TYPE_INT_64
-    | TYPE_INT_64_POINTER
-    | TYPE_CHAR
-    | TYPE_CHAR_POINTER
-    | TYPE_FLOAT
-    | TYPE_FLOAT_POINTER
-    | TYPE_DOUBLE
-    | TYPE_DOUBLE_POINTER
-    | TYPE_BOOL
-    | TYPE_BOOL_POINTER
+    : TYPE_INT                                                      { $$ = new SkyVarType($1); }
+    | TYPE_INT_POINTER                                              { $$ = new SkyVarType($1); }
+    | TYPE_INT_64                                                   { $$ = new SkyVarType($1); }
+    | TYPE_INT_64_POINTER                                           { $$ = new SkyVarType($1); }
+    | TYPE_CHAR                                                     { $$ = new SkyVarType($1); }
+    | TYPE_CHAR_POINTER                                             { $$ = new SkyVarType($1); }
+    | TYPE_FLOAT                                                    { $$ = new SkyVarType($1); }
+    | TYPE_FLOAT_POINTER                                            { $$ = new SkyVarType($1); }
+    | TYPE_DOUBLE                                                   { $$ = new SkyVarType($1); }
+    | TYPE_DOUBLE_POINTER                                           { $$ = new SkyVarType($1); }
+    | TYPE_BOOL                                                     { $$ = new SkyVarType($1); }
+    | TYPE_BOOL_POINTER                                             { $$ = new SkyVarType($1); }
     ;
 
 func_declaration

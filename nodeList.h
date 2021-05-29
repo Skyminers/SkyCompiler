@@ -424,14 +424,16 @@ private:
     StatNode *thenStat, *elseStat;
 };
 
+// including for/while/do..while
 class ForStat: public StatNode {
 public:
-    ForStat(ExprNode *forInit, ExprNode *forCond, ExprNode *forStep, StatNode *forBody):
-        forInit(forInit), forCond(forCond), forStep(forStep), forBody(forBody) { }
+    ForStat(ExprNode *forInit, ExprNode *forCond, ExprNode *forStep, StatNode *forBody, bool checkAtFirstTime = true):
+        forInit(forInit), forCond(forCond), forStep(forStep), forBody(forBody), checkAtFirstTime(checkAtFirstTime) { }
 
 private:
     ExprNode *forInit, *forCond, *forStep;
     StatNode *forBody;
+    bool checkAtFirstTime; // true -> for/while,   false -> do..while
 };
 
 class WhileStat: public StatNode {

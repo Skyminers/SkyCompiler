@@ -30,6 +30,10 @@ extern int yylex();
     SkyVarType *skyVarType;
     SkyArrayType *skyArrayType;
     FuncDec *funcDec;
+    CompoundStat *compoundStat;
+    StatList *statList;
+    IfStat *ifStat;
+    ForStat *forStat;
 }
 
 %type<program>                          program
@@ -43,6 +47,10 @@ extern int yylex();
 %type<skyVarType>                       var_type
 %type<skyArrayType>                     array_type_declaration
 %type<funcDec>                          func_declaration
+%type<compoundStat>                     compound_statement
+%type<statList>                         statement_list
+%type<ifStat>                           branch_statement
+%type<forStat>                          iteration_statement
 
 %token<iVal> INTEGER
 %token<fVal> FLOAT
@@ -139,47 +147,49 @@ var_type
     ;
 
 func_declaration
-    : FUNCTION name '(' var_list ')' '{' statement_list '}'         { $$ = new FuncDec($2, $4, $7); }
-    | FUNCTION name '(' var_list ')' OP_PTR var_type '{' statement_list '}'
-                                                                    { $$ = new FuncDec($2, $4, $7, $9); }
+    : FUNCTION name '(' var_list ')' compound_statement             { $$ = new FuncDec($2, $4, $6); }
+    | FUNCTION name '(' var_list ')' OP_PTR var_type compound_statement
+                                                                    { $$ = new FuncDec($2, $4, $7, $8); }
     ;
 
 main_func
-    : FUNCTION MAIN '(' var_list ')' OP_PTR return_type '{' statement_list '}'
-                                                                    { $$ = new FuncDec(new Identifier(MAIN), $4, $7, $9); }
+    : FUNCTION MAIN '(' var_list ')' OP_PTR return_type compound_statement
+                                                                    { $$ = new FuncDec(new Identifier(MAIN), $4, $7, $8); }
     ;
 
 statement_list
-    : statement_list statement
-    |
+    : statement_list statement                                      { $$ = $1; $$->push_back($2); }
+    |                                                               { $$ = new StatList(); }
     ;
 
 statement
-    : compound_statement
-    | branch_statement
-    | iteration_statement
-    | expression
-    | jump_statement
-    | assign_statement
-    | print_statement
-    | var_declaration
-    | const_declaration
+    : compound_statement                                            { $$ = $1; }
+    | branch_statement                                              { $$ = $1; }
+    | iteration_statement                                           { $$ = $1; }
+    | expression                                                    { $$ = $1; }
+    | jump_statement                                                { $$ = $1; }
+    | assign_statement                                              { $$ = $1; }
+    | print_statement                                               { $$ = $1; }
+    | var_declaration                                               { $$ = $1; }
+    | const_declaration                                             { $$ = $1; }
     ;
 
 compound_statement
-    : '{' statement_list '}'
+    : '{' statement_list '}'                                        { $$ = new CompoundStat($2); }
     ;
 
 branch_statement
-    : IF '(' expression ')' statement
-    | IF '(' expression ')' statement ELSE statement
+    : IF '(' expression ')' statement                               { $$ = new IfStat($3, $5, nullptr); }
+    | IF '(' expression ')' statement ELSE statement                { $$ = new IfStat($3, $5, $7); }
     ;
 
 iteration_statement
-    : WHILE '(' expression ')' statement
-    | DO statement WHILE '(' expression ')'
+    : WHILE '(' expression ')' statement                            { $$ = new ForStat(nullptr, $3, nullptr, $5); }
+    | DO statement WHILE '(' expression ')'                         { $$ = new ForStat(nullptr, $5, nullptr, $2, false); }
     | FOR '(' expression_statement expression_statement ')' statement
+                                                                    { $$ = new ForStat($3, $4, nullptr, $6); }
     | FOR '(' expression_statement expression_statement expression ')' statement
+                                                                    { $$ = new ForStat($3, $4, $5, $7); }
     ;
 
 jump_statement
@@ -195,41 +205,41 @@ expression_statement
     ;
 
 expression
-    : expression OP_OR expression_or             { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_OR, $3); }
+    : expression OP_OR expression_or             { $$ = new BinaryExpr($1, BinaryOperators::OP_OR, $3); }
     | expression_or                              { $$ = $1; }
     ;
 
 expression_or
-    : expression_or OP_AND expression_and        { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_AND, $3); }
+    : expression_or OP_AND expression_and        { $$ = new BinaryExpr($1, BinaryOperators::OP_AND, $3); }
     | expression_and                             { $$ = $1; }
     ;
 
 expression_and
-    : expression_and OP_EQ expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_EQ, $3); }
-    | expression_and OP_NE expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_NE, $3); }
-    | expression_and OP_GT expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_GT, $3); }
-    | expression_and OP_LT expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_LT, $3); }
-    | expression_and OP_GE expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_GE, $3); }
-    | expression_and OP_LE expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_LE, $3); }
+    : expression_and OP_EQ expr                  { $$ = new BinaryExpr($1, BinaryOperators::OP_EQ, $3); }
+    | expression_and OP_NE expr                  { $$ = new BinaryExpr($1, BinaryOperators::OP_NE, $3); }
+    | expression_and OP_GT expr                  { $$ = new BinaryExpr($1, BinaryOperators::OP_GT, $3); }
+    | expression_and OP_LT expr                  { $$ = new BinaryExpr($1, BinaryOperators::OP_LT, $3); }
+    | expression_and OP_GE expr                  { $$ = new BinaryExpr($1, BinaryOperators::OP_GE, $3); }
+    | expression_and OP_LE expr                  { $$ = new BinaryExpr($1, BinaryOperators::OP_LE, $3); }
     | expr                                       { $$ = $1; }
     ;
 
 expr
-    : expr OP_LEFT expr_shift                    { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_LEFT, $3); }
-    | expr OP_RIGHT expr_shift                   { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_RIGHT, $3); }
+    : expr OP_LEFT expr_shift                    { $$ = new BinaryExpr($1, BinaryOperators::OP_LEFT, $3); }
+    | expr OP_RIGHT expr_shift                   { $$ = new BinaryExpr($1, BinaryOperators::OP_RIGHT, $3); }
     | expr_shift                                 { $$ = $1; }
     ;
 
 expr_shift
-    : expr_shift  OP_PLUS term                   { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_PLUS, $3); }
-    | expr_shift  OP_MINUS term                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_MINUS, $3); }
+    : expr_shift  OP_PLUS term                   { $$ = new BinaryExpr($1, BinaryOperators::OP_PLUS, $3); }
+    | expr_shift  OP_MINUS term                  { $$ = new BinaryExpr($1, BinaryOperators::OP_MINUS, $3); }
     | term                                       { $$ = $1; }
     ;
 
 term
-    : term OP_MUL factor                         { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_MUL, $3); }
-    | term OP_DIV factor                         { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_DIV, $3); }
-    | term OP_MOD factor                         { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_MOD, $3); }
+    : term OP_MUL factor                         { $$ = new BinaryExpr($1, BinaryOperators::OP_MUL, $3); }
+    | term OP_DIV factor                         { $$ = new BinaryExpr($1, BinaryOperators::OP_DIV, $3); }
+    | term OP_MOD factor                         { $$ = new BinaryExpr($1, BinaryOperators::OP_MOD, $3); }
     | factor                                     { $$ = $1; }
     ;
 
@@ -238,7 +248,7 @@ factor
     | factor OP_INC
     | OP_DEC factor
     | factor OP_DEC
-    | OP_MINUS factor                            { $$ = new BinaryExpression(new Integer(0), BinaryExpression::BinaryOperator::OP_MINUS, $2); }
+    | OP_MINUS factor                            { $$ = new BinaryExpr(new Integer(0), BinaryOperators::OP_MINUS, $2); }
     | OP_NOT factor
     | number                                     { $$ = $1; }
     ;

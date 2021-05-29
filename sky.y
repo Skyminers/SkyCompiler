@@ -29,6 +29,7 @@ extern int yylex();
     SkyTypes *skyTypes;
     SkyVarType *skyVarType;
     SkyArrayType *skyArrayType;
+    FuncDec *funcDec;
 }
 
 %type<program>                          program
@@ -41,6 +42,7 @@ extern int yylex();
 %type<skyTypes>                         type_declaration
 %type<skyVarType>                       var_type
 %type<skyArrayType>                     array_type_declaration
+%type<funcDec>                          func_declaration
 
 %token<iVal> INTEGER
 %token<fVal> FLOAT
@@ -86,7 +88,7 @@ const_list
     ;
 
 const_expr
-    : const_name '=' const_value                                    { $$ = new ConstDec($1, $3); }
+    : name '=' const_value                                          { $$ = new ConstDec($1, $3); }
     ;
 
 const_value
@@ -108,8 +110,8 @@ var_list
     ;
 
 var_expr
-    : var_name '=' expression
-    | var_name ':' type_declaration                                 { $$ = new VarDec($1, $3); }
+    : name '=' expression
+    | name ':' type_declaration                                     { $$ = new VarDec($1, $3); }
     ;
 
 type_declaration
@@ -137,33 +139,14 @@ var_type
     ;
 
 func_declaration
-    : FUNCTION func_name '(' parameter_list ')' '[' OP_PTR return_type ']' '{' statement_list '}' 
+    : FUNCTION name '(' var_list ')' '{' statement_list '}'         { $$ = new FuncDec($2, $4, $7); }
+    | FUNCTION name '(' var_list ')' OP_PTR var_type '{' statement_list '}'
+                                                                    { $$ = new FuncDec($2, $4, $7, $9); }
     ;
-
-parameter_list
-    :
-    parameter_list ',' var_name ':' var_type
-    | var_name ':' var_type
-    | 
-    ;
-
-return_type:
-    TYPE_INT 
-    | TYPE_INT_POINTER 
-    | TYPE_INT_64 
-    | TYPE_INT_64_POINTER
-    | TYPE_CHAR 
-    | TYPE_CHAR_POINTER
-    | TYPE_FLOAT 
-    | TYPE_FLOAT_POINTER 
-    | TYPE_DOUBLE 
-    | TYPE_DOUBLE_POINTER
-    | TYPE_BOOL 
-    | TYPE_BOOL_POINTER
-    | ;
 
 main_func
-    : FUNCTION MAIN '(' ')' OP_PTR return_type '{' statement_list '}'
+    : FUNCTION MAIN '(' var_list ')' OP_PTR return_type '{' statement_list '}'
+                                                                    { $$ = new FuncDec(new Identifier(MAIN), $4, $7, $9); }
     ;
 
 statement_list
@@ -241,7 +224,7 @@ expression_list
     ;
 
 assign_statement
-    : var_name assign_operator expression
+    : name assign_operator expression
 
 assign_operator
     : OR_ASSIGN
@@ -264,28 +247,19 @@ print_content
     ;
 
 content_var_list
-    : var_type_list ',' var_name_list 
+    : var_type_list ',' name_list 
     ;
 
 var_type_list
     : var_type var_type_list
     ;
 
-var_name_list
-    : var_name var_name_list
+name_list
+    : name name_list
     ;
 
-const_name
-    : STRING
-    ;    
-
-var_name
-    : STRING
-    ;
-
-func_name
-    : STRING
-    ;
+name
+    : IDENTIFIER                                                    { $$ = new Identifier($1); }
 
 %%
 

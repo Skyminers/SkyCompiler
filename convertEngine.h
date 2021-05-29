@@ -12,9 +12,13 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/Target/TargetMachine.h>
 
-#include <cstdio>
 #include <iostream>
+#include <string>
 #include <vector>
+#include <stack>
+#include <map>
+
+#include "nodeList.h"
 
 using namespace std;
 using namespace llvm;
@@ -27,6 +31,15 @@ private:
     uint layoutID;
     Function *scan, *print;
     Function *main;
+    stack<Function*> funcList;
+    vector<BasicBlock*> blockID;
+
+    /*
+     * ArrayType is constant var, which need start point and length.
+     * So, array type should be different from normal var.
+     * */
+    map<string, SkyArrayType*> arrayMap;
+
 public:
     ConvertEngine(){
         module = new Module("skyModule", context);
@@ -44,6 +57,18 @@ public:
         print = Function::Create(funcType, Function::ExternalLinkage, Twine("printf"), module);
         print->setCallingConv(CallingConv::C);
     }
+
+    /*
+     * This function is used to create main function.
+     * Main function is a special function which represented the entrance of program
+     * */
+    void createMainFunction();
+
+    /*
+     * Array type is different from normal var.
+     * */
+    SkyArrayType* findArrayValue(string varName);
+    Value* findVarByName(string varName);
 
 
     void compile();

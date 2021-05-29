@@ -30,19 +30,19 @@ typedef vector<VarDec*>     VarDecList;
 
 
 enum SkyVarType {
-    TYPE_INT,
-    TYPE_INT_POINTER,
-    TYPE_INT_64,
-    TYPE_INT_64_POINTER,
-    TYPE_CHAR,
-    TYPE_CHAR_POINTER,
-    TYPE_FLOAT,
-    TYPE_FLOAT_POINTER,
-    TYPE_DOUBLE,
-    TYPE_DOUBLE_POINTER,
-    TYPE_BOOL,
-    TYPE_BOOL_POINTER,
-    TYPE_STRING
+    SKY_INT,
+    SKY_INT_POINTER,
+    SKY_INT_64,
+    SKY_INT_64_POINTER,
+    SKY_CHAR,
+    SKY_CHAR_POINTER,
+    SKY_FLOAT,
+    SKY_FLOAT_POINTER,
+    SKY_DOUBLE,
+    SKY_DOUBLE_POINTER,
+    SKY_BOOL,
+    SKY_BOOL_POINTER,
+    SKY_STRING
 };
 
 enum SkyTypes {
@@ -76,6 +76,18 @@ enum BinaryOperators {
     OP_INC,
     OP_DEC,
     OP_PTR
+};
+
+enum TypeOfIteration {
+    FOR,
+    WHILE,
+    DO_WHILE
+};
+
+enum TypeOfJump {
+    BREAK,
+    CONTINUE,
+    RETURN
 };
 
 enum AssignType {
@@ -154,7 +166,7 @@ public:
         myInt.iVal = v;
     }
     SkyVarType getType() override {
-        return TYPE_INT;
+        return SKY_INT;
     }
     ConstValueUnion getValue() override {
         return myInt;
@@ -174,7 +186,7 @@ public:
         myInt64.i64Val = v;
     }
     SkyVarType getType() override {
-        return TYPE_INT_64;
+        return SKY_INT_64;
     }
     ConstValueUnion getValue() override {
         return myInt64;
@@ -194,7 +206,7 @@ public:
         myDouble.dVal = v;
     }
     SkyVarType getType() override {
-        return TYPE_DOUBLE;
+        return SKY_DOUBLE;
     }
     ConstValueUnion getValue() override {
         return myDouble;
@@ -214,7 +226,7 @@ public:
         myFloat.fVal = v;
     }
     SkyVarType getType() override {
-        return TYPE_FLOAT;
+        return SKY_FLOAT;
     }
     ConstValueUnion getValue() override {
         return myFloat;
@@ -234,7 +246,7 @@ public:
         myChar.cVal = v;
     }
     SkyVarType getType() override {
-        return TYPE_CHAR;
+        return SKY_CHAR;
     }
     ConstValueUnion getValue() override {
         return myChar;
@@ -254,7 +266,7 @@ public:
         myString.sVal = (char*)v.c_str();
     }
     SkyVarType getType() override {
-        return TYPE_STRING;
+        return SKY_STRING;
     }
     ConstValueUnion getValue() override {
         return myString;
@@ -271,7 +283,7 @@ public:
         myBool.bVal = v;
     }
     SkyVarType getType() override {
-        return TYPE_BOOL;
+        return SKY_BOOL;
     }
     ConstValueUnion getValue() override {
         return myBool;
@@ -302,7 +314,7 @@ public:
     Value *mapIndex();
     size_t size() {
         int countSize = 0;
-        if (left->getType() == TYPE_INT && left->getType() == right->getType()) {
+        if (left->getType() == SKY_INT && left->getType() == right->getType()) {
             countSize = right->getValue().iVal - left->getValue().iVal;
             if (countSize <= 0) {
                 throw range_error("ERROR: left range > right range!");
@@ -425,24 +437,24 @@ private:
 };
 
 // including for/while/do..while
-class ForStat: public StatNode {
+class IterationStat: public StatNode {
 public:
-    ForStat(ExprNode *forInit, ExprNode *forCond, ExprNode *forStep, StatNode *forBody, bool checkAtFirstTime = true):
-        forInit(forInit), forCond(forCond), forStep(forStep), forBody(forBody), checkAtFirstTime(checkAtFirstTime) { }
+    IterationStat(ExprNode *init, ExprNode *condition, ExprNode *step, StatNode *body, TypeOfIteration type):
+         init(init), condition(condition), step(step), body(body), type(type) { }
 
 private:
-    ExprNode *forInit, *forCond, *forStep;
-    StatNode *forBody;
-    bool checkAtFirstTime; // true -> for/while,   false -> do..while
+    ExprNode *init, *condition, *step;
+    StatNode *body;
+    TypeOfIteration type;
 };
 
-class WhileStat: public StatNode {
+class JumpStat: public StatNode {
 public:
-    WhileStat(ExprNode *whileCond, StatNode *whileBody): whileCond(whileCond), whileBody(whileBody) { }
+    JumpStat(TypeOfJump type, ExprNode *retExpr): type(type), retExpr(retExpr) { }
 
 private:
-    ExprNode *whileCond;
-    StatNode *whileBody;
+    ExprNode *retExpr;
+    TypeOfJump type;
 };
 
 class CompoundStat: public StatNode {

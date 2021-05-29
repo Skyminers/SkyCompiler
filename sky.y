@@ -34,6 +34,13 @@ extern int yylex();
     IterationStat *iterationStat;
     JumpStat *jumpStat;
     ExprNode *expression;
+    ExprList *exprList;
+    AssignStat *assignStat;
+    PrintStat *printStat;
+    ClassDec *classDec;
+    Identifier *identifier;
+    ClassBody *classBody;
+    FuncDecList *funcDecList;
 }
 
 %type<program>                          program
@@ -46,13 +53,20 @@ extern int yylex();
 %type<skyTypes>                         type_declaration
 %type<skyVarType>                       var_type
 %type<skyArrayType>                     array_type_declaration
-%type<funcDec>                          func_declaration
+%type<funcDec>                          func_declaration main_func class_init class_del
 %type<compoundStat>                     compound_statement
 %type<statList>                         statement_list
 %type<ifStat>                           branch_statement
 %type<iterationStat>                    iteration_statement
 %type<jumpStat>                         jump_statement
-%type<expression>                       expr_statement expression expression_or expression_and expr expr_shift term factor
+%type<expression>                       expr_statement expression expression_or expression_and expr expr_shift term factor number
+%type<exprList>                         expression_list
+%type<assignStat>                       assign_statement
+%type<printStat>                        print_statement
+%type<classDec>                         class_declaration
+%type<identifier>                       inherit_part
+%type<classBody>                        class_body
+%type<funcDecList>                      func_declaration_list
 
 %token<iVal> INTEGER
 %token<fVal> FLOAT
@@ -61,7 +75,8 @@ extern int yylex();
 %token<sVal> STRING IDENTIFIER
 %token<bVal> BOOLEAN
 
-%token  MAIN VAR LET NEW DELETE
+%token  MAIN PRINT
+        VAR LET NEW DELETE
         FUNCTION BREAK CONTINUE RETURN
         IF ELSE FOR WHILE DO
         CLASS INIT DEL THIS
@@ -85,6 +100,7 @@ global_area
     : global_area const_declaration                         { $$ = $1; $$->addConstDec($2); }
     | global_area var_declaration                           { $$ = $1; $$->addVarDec($2); }
     | global_area func_declaration                          { $$ = $1; $$->addFuncDec($2); }
+    | global_area class_declaration                         { $$ = $1; $$->addClassDec($2); }
     |                                                       { $$ = new GlobalArea(); }
     ;
 
@@ -154,11 +170,12 @@ func_declaration
     ;
 
 main_func
-    : FUNCTION MAIN '(' var_list ')' OP_PTR return_type compound_statement  { $$ = new FuncDec(new Identifier(MAIN), $4, $7, $8); }
+    : FUNCTION MAIN '(' var_list ')' OP_PTR var_type compound_statement     { $$ = new FuncDec(new Identifier(MAIN), $4, $7, $8); }
     ;
 
 statement_list
-    : statement_list statement                              { $$ = $1; $$->push_back($2); }
+    : statement_list NEWLINE statement                      { $$ = $1; $$->push_back($2); }
+    | statement                                             { $$ = new StatList(); $$->push_back($1); }
     |                                                       { $$ = new StatList(); }
     ;
 
@@ -247,63 +264,64 @@ factor
     | OP_DEC factor
     | factor OP_DEC
     | OP_MINUS factor                                       { $$ = new BinaryExpr(new Integer(0), BinaryOperators::OP_MINUS, $2); }
-    | OP_NOT factor
+    | OP_NOT factor                                         { $$ = new BinaryExpr(new Boolean(true), BinaryOperators::OP_XOR, $2); }
     | number                                                { $$ = $1; }
     ;
 
 number
-    : number '[' expression ']'                             { $$ = new ArrayRef($1, $3); }
-    | number '.' IDENTIFIER
+    : name '[' expression ']'                               { $$ = new ArrayRef($1, $3); }
+    | name '.' name                                         { $$ = new ClassRef($1, $3); }
     | '(' expression ')'                                    { $$ = $2; }
-    | number '(' expression_list ')'
+    | name '(' expression_list ')'                          { $$ = new FuncCall($1, $3); }
     | const_value                                           { $$ = $1; }
-    | IDENTIFIER                                            { $$ = $1; }
+    | name                                                  { $$ = $1; }
     ;
 
-
 expression_list
-    : expression ',' expression_list
-    | expression
-    |
+    : expression_list ',' expression                        { $$ = $1; $$->push_back($3); }
+    | expression                                            { $$ = new ExprList(); $$->push_back($1); }
+    |                                                       { $$ = nullptr; }
     ;
 
 assign_statement
-    : name assign_operator expression
-
-assign_operator
-    : OR_ASSIGN
-    | ADD_ASSIGN
-    | AND_ASSIGN
-    | DIV_ASSIGN
-    | MOD_ASSIGN
-    | MUL_ASSIGN
-    | SUB_ASSIGN
-    | XOR_ASSIGN
-    | '='
+    : name '=' expression                                   { $$ = new AssignStat($1, $3); }
+    | name '[' expression ']' '=' expression                { $$ = new AssignStat($1, $3, $6); }
+    | name '.' name '=' expression                          { $$ = new AssignStat($1, $3, $5); }
     ;
 
 print_statement
-    : PRINTF '(' print_content ')'
-
-print_content
-    : content_var_list
-    | IDENTIFIER
-    ;
-
-content_var_list
-    : var_type_list ',' name_list
-    ;
-
-var_type_list
-    : var_type var_type_list
-    ;
-
-name_list
-    : name name_list
+    : PRINT '(' expression_list ')'                         { $$ = new PrintStat($3); }
     ;
 
 name
     : IDENTIFIER                                            { $$ = new Identifier($1); }
+    ;
+
+class_declaration
+    : CLASS name inherit_part '{' class_body '}'            { $$ = new ClassDec($2, $3, $5); }
+    ;
+
+inherit_part
+    : ':' name                                              { $$ = $2; }
+    |                                                       { $$ = nullptr; }
+    ;
+
+class_body
+    : class_init class_del func_declaration_list            { $$ = new ClassBody($1, $2, $3); }
+    ;
+
+class_init
+    : FUNCTION INIT '(' var_list ')' OP_PTR var_type compound_statement     { $$ = new FuncDec(new Identifier(INIT), $4, $7, $8); }
+    ;
+
+class_del
+    : FUNCTION DEL '(' var_list ')' OP_PTR var_type compound_statement      { $$ = new FuncDec(new Identifier(DEL), $4, $7, $8); }
+    |                                                       { $$ = nullptr; }
+    ;
+
+func_declaration_list
+    : func_declaration_list func_declaration                { $$ = $1; $$->push_back($2); }
+    |                                                       { $$ = new FuncDecList(); }
 
 %%
 

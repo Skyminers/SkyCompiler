@@ -27,9 +27,10 @@ using namespace std;
 "continue"                    {return CONTINUE;}
 "break"                       {return BREAK;}
 "class"                       {return CLASS;}
-"init"                        {return INIT;}         /*构造函数*/
-"del"                         {return DEL;}          /*析构函数*/
+"__init__"                    {return INIT;}         /*构造函数*/
+"__del__"                     {return DEL;}          /*析构函数*/
 "this"                        {return THIS;}         /*自身指针*/
+"print"                       {return PRINT;}
 
 "int"                         {return TYPE_INT;}
 "int*"                        {return TYPE_INT_POINTER;}

@@ -21,12 +21,16 @@ class FuncDec;
 class ConstDec;
 class VarDec;
 class GlobalArea;
+class ExprNode;
+class ClassDec;
 
 typedef vector<Identifier*> IdentifierList;
 typedef vector<StatNode*>   StatList;
 typedef vector<FuncDec*>    FuncDecList;
 typedef vector<ConstDec*>   ConstDecList;
 typedef vector<VarDec*>     VarDecList;
+typedef vector<ExprNode*>   ExprList;
+typedef vector<ClassDec*>   ClassDecList;
 
 
 enum SkyVarType {
@@ -142,14 +146,18 @@ public:
     void addVarDec(VarDecList *vd) {
         varDecList->insert(varDecList->end(), vd->begin(), vd->end());
     }
-    void addFuncDec(FuncDecList *fd) {
-        funcDecList->insert(funcDecList->end(), fd->begin(), fd->end());
+    void addFuncDec(FuncDec *fd) {
+        funcDecList->push_back(fd);
+    }
+    void addClassDec(ClassDec *cd) {
+        classDecList->push_back(cd);
     }
 
 private:
     ConstDecList *constDecList;
     VarDecList *varDecList;
     FuncDecList *funcDecList;
+    ClassDecList *classDecList;
 };
 
 class ConstValue: public ExprNode{
@@ -307,32 +315,9 @@ private:
     int size;
 };
 
-class SkyRangeType: public StatNode {
-public:
-    SkyRangeType(ConstValue *left, ConstValue *right): left(left), right(right) { }
-    Value *convertToCode() override;
-    Value *mapIndex();
-    size_t size() {
-        int countSize = 0;
-        if (left->getType() == SKY_INT && left->getType() == right->getType()) {
-            countSize = right->getValue().iVal - left->getValue().iVal;
-            if (countSize <= 0) {
-                throw range_error("ERROR: left range > right range!");
-            }
-        } else {
-            throw domain_error("ERROR: range type error!");
-        }
-        return countSize;
-    }
-
-private:
-    ConstValue *left, *right;
-};
-
 class SkyType: public StatNode {
 public:
     explicit SkyType(SkyArrayType *arrayType): arrayType(arrayType), myType(SKY_ARRAY) { }
-    explicit SkyType(SkyRangeType *rangeType): rangeType(rangeType), myType(SKY_RANGE) { }
     explicit SkyType(SkyVarType varType): varType(varType), myType(SKY_VAR) { }
     SkyType(): myType(SKY_VOID) { }
     Value *convertToCode() override;
@@ -341,7 +326,6 @@ public:
 
 private:
     SkyArrayType *arrayType{};
-    SkyRangeType *rangeType{};
     SkyVarType varType;
     SkyTypes myType;
 };
@@ -404,15 +388,23 @@ private:
     CompoundStat *myBody;
 };
 
-//class Parameter: public StatNode {
-//public:
-//    Parameter(IdentifierList *idList, bool isVar): myIdList(idList), isVar(isVar) { }
-//    Value *convertToCode() override;
-//
-//private:
-//    IdentifierList *myIdList;
-//    bool isVar;
-//};
+class ClassBody: public StatNode {
+public:
+    ClassBody(FuncDec *init, FuncDec *del, FuncDecList *funcList): initClass(init), delClass(del), funcList(funcList) { }
+
+private:
+    FuncDec *initClass, *delClass;
+    FuncDecList *funcList;
+};
+
+class ClassDec: public StatNode {
+public:
+    ClassDec(Identifier *name, Identifier *father, ClassBody *body): name(name), father(father), body(body) { }
+
+private:
+    Identifier *name, *father;
+    ClassBody *body;
+};
 
 class AssignStat: public StatNode {
 public:
@@ -424,6 +416,14 @@ private:
     Identifier *targetId, *childId;
     ExprNode *expr, *subInd;
     AssignType type;
+};
+
+class PrintStat: public StatNode {
+public:
+    explicit PrintStat(ExprList *exprList): exprList(exprList) { }
+
+private:
+    ExprList *exprList;
 };
 
 class IfStat: public StatNode {
@@ -489,6 +489,15 @@ public:
 
 private:
     Identifier *id, *childId;
+};
+
+class FuncCall: public ExprNode, StatNode {
+public:
+    FuncCall(Identifier *id, ExprList *args): id(id), args(args) { }
+
+private:
+    Identifier *id;
+    ExprList *args;
 };
 
 #endif

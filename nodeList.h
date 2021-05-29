@@ -70,7 +70,12 @@ enum BinaryOperators {
     OP_AND,
     OP_OR,
     OP_XOR,
-    OP_MOD
+    OP_MOD,
+    OP_LEFT,
+    OP_RIGHT,
+    OP_INC,
+    OP_DEC,
+    OP_PTR
 };
 
 enum AssignType {

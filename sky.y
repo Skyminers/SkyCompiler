@@ -147,19 +147,19 @@ parameter_list
     | 
     ;
 
-return_type:
-    TYPE_INT 
-    | TYPE_INT_POINTER 
-    | TYPE_INT_64 
-    | TYPE_INT_64_POINTER
-    | TYPE_CHAR 
-    | TYPE_CHAR_POINTER
-    | TYPE_FLOAT 
-    | TYPE_FLOAT_POINTER 
-    | TYPE_DOUBLE 
-    | TYPE_DOUBLE_POINTER
-    | TYPE_BOOL 
-    | TYPE_BOOL_POINTER
+return_type
+    : TYPE_INT                                                      { $$ = new SkyVarType($1); }
+    | TYPE_INT_POINTER                                              { $$ = new SkyVarType($1); }
+    | TYPE_INT_64                                                   { $$ = new SkyVarType($1); }
+    | TYPE_INT_64_POINTER                                           { $$ = new SkyVarType($1); }
+    | TYPE_CHAR                                                     { $$ = new SkyVarType($1); }
+    | TYPE_CHAR_POINTER                                             { $$ = new SkyVarType($1); }
+    | TYPE_FLOAT                                                    { $$ = new SkyVarType($1); }
+    | TYPE_FLOAT_POINTER                                            { $$ = new SkyVarType($1); }
+    | TYPE_DOUBLE                                                   { $$ = new SkyVarType($1); }
+    | TYPE_DOUBLE_POINTER                                           { $$ = new SkyVarType($1); }
+    | TYPE_BOOL                                                     { $$ = new SkyVarType($1); }
+    | TYPE_BOOL_POINTER                                             { $$ = new SkyVarType($1); }
     | ;
 
 main_func
@@ -212,27 +212,63 @@ expression_statement
     ;
 
 expression
-    : expression OP_PLUS expression
-    | expression OP_MINUS expression
-    | expression OP_MUL expression
-    | expression OP_DIV expression
-    | expression OP_AND expression
-    | expression OP_OR expression
-    | expression '[' expression ']'
-    | expression '.' IDENTIFIER
-    | expression OP_EQ expression
-    | expression OP_NE expression
-    | expression OP_GT expression
-    | expression OP_LT expression
-    | expression OP_GE expression
-    | expression OP_LE expression
-    | MINUS expression
-    | OP_NOT expression
-    | '(' expression ')'
-    | const_value
-    | IDENTIFIER
-    | expression '(' expression_list ')'
+    : expression OP_OR expression_or             { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_OR, $3); }
+    | expression_or                              { $$ = $1; }
     ;
+
+expression_or
+    : expression_or OP_AND expression_and        { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_AND, $3); }
+    | expression_and                             { $$ = $1; }
+    ;
+
+expression_and
+    : expression_and OP_EQ expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_EQ, $3); }
+    | expression_and OP_NE expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_NE, $3); }
+    | expression_and OP_GT expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_GT, $3); }
+    | expression_and OP_LT expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_LT, $3); }
+    | expression_and OP_GE expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_GE, $3); }
+    | expression_and OP_LE expr                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_LE, $3); }
+    | expr                                       { $$ = $1; }
+    ;
+
+expr
+    : expr OP_LEFT expr_shift                    { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_LEFT, $3); }
+    | expr OP_RIGHT expr_shift                   { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_RIGHT, $3); }
+    | expr_shift                                 { $$ = $1; }
+    ;
+
+expr_shift 
+    : expr_shift  OP_PLUS term                   { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_PLUS, $3); }
+    | expr_shift  OP_MINUS term                  { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_MINUS, $3); }
+    | term                                       { $$ = $1; }
+    ;
+
+term
+    : term OP_MUL factor                         { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_MUL, $3); }
+    | term OP_DIV factor                         { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_DIV, $3); }
+    | term OP_MOD factor                         { $$ = new BinaryExpression($1, BinaryExpr::BinaryOperator::OP_MOD, $3); }
+    | factor                                     { $$ = $1; }
+    ;
+
+factor 
+    : OP_INC factor                              
+    | factor OP_INC
+    | OP_DEC factor
+    | factor OP_DEC
+    | OP_MINUS factor                            { $$ = new BinaryExpression(new Integer(0), BinaryExpression::BinaryOperator::OP_MINUS, $2); }
+    | OP_NOT factor                              
+    | number                                     { $$ = $1; }
+    ;
+
+number
+    : number '[' expression ']'                  { $$ = new ArrayRef($1, $3); }
+    | number '.' IDENTIFIER
+    | '(' expression ')'                         { $$ = $2; }
+    | number '(' expression_list ')'
+    | const_value                                { $$ = $1; }
+    | IDENTIFIER                                 { $$ = $1; }
+    ;
+
 
 expression_list
     : expression ',' expression_list
@@ -276,15 +312,15 @@ var_name_list
     ;
 
 const_name
-    : STRING
+    : STRING                                                          { $$ = $1; }
     ;    
 
 var_name
-    : STRING
+    : STRING                                                          { $$ = $1; }
     ;
 
 func_name
-    : STRING
+    : STRING                                                          { $$ = $1; }
     ;
 
 %%

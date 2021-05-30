@@ -13,5 +13,5 @@ ENDIF()
 add_executable(ConvertEngineTest
         convertEngine.cpp nodeList.cpp)
 
-add_executable(PascalCompiler
+add_executable(SkyCompiler
         main.cpp nodeList.cpp)

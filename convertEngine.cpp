@@ -23,7 +23,9 @@ SkyArrayType* ConvertEngine::findArrayValue(string varName) {
 
 Value* ConvertEngine::findVarByName(string varName) {
     auto nowFunc = funcList.top();
-    //auto result = nowFunc->getValueSymbolTable()->lookup(varName);
+    auto result = nowFunc->getValueSymbolTable()->lookup(varName);
+    if(result != nullptr) return result;
+    result = module->getGlobalVariable(varName);
 }
 // Unit test
 int main() {

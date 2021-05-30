@@ -10,11 +10,18 @@
 
 class CompileException {
 public:
+    explicit CompileException(std::string msg): errorMsg(std::move(msg)){}
+    std::string getErrorMsg(){
+        return "[Error] : " + errorMsg;
+    }
+private:
     std::string errorMsg;
-    explicit CompileException(std::string msg="Empty error msg."): errorMsg(std::move(msg)){}
 };
 
-class VarNotFound : CompileException{};
+class VarNotFound : CompileException{
+public:
+    VarNotFound(std::string msg): CompileException(msg){}
+};
 
 
 #endif //COMPILEEXCEPTION_H

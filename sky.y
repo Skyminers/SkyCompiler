@@ -31,7 +31,6 @@ extern int yylex();
     CompoundStat *compoundStat;
     StatList *statList;
     IfStat *ifStat;
-    IterationStat *iterationStat;
     JumpStat *jumpStat;
     ExprNode *expression;
     ExprList *exprList;
@@ -41,6 +40,7 @@ extern int yylex();
     Identifier *identifier;
     ClassBody *classBody;
     FuncDecList *funcDecList;
+    StatNode *statement;
 }
 
 %type<program>                          program
@@ -57,7 +57,7 @@ extern int yylex();
 %type<compoundStat>                     compound_statement
 %type<statList>                         statement_list
 %type<ifStat>                           branch_statement
-%type<iterationStat>                    iteration_statement
+%type<statement>                        for_statement
 %type<jumpStat>                         jump_statement
 %type<expression>                       expr_statement expression expression_or expression_and expr expr_shift term factor number
 %type<exprList>                         expression_list
@@ -78,7 +78,7 @@ extern int yylex();
 %token  MAIN PRINT
         VAR LET NEW DELETE
         FUNCTION BREAK CONTINUE RETURN
-        IF ELSE FOR WHILE DO
+        IF ELSE FOR WHILE IN
         CLASS INIT DEL THIS
         TYPE_INT TYPE_INT_POINTER TYPE_INT_64 TYPE_INT_64_POINTER
         TYPE_CHAR TYPE_CHAR_POINTER
@@ -88,7 +88,7 @@ extern int yylex();
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
         OP_PLUS OP_MINUS OP_MUL OP_DIV OP_MOD OP_RIGHT OP_LEFT OP_INC OP_DEC OP_PTR OP_AND OP_OR
         OP_LT OP_LE OP_GT OP_GE OP_EQ OP_NE
-        NEWLINE
+        LF
 
 %%
 
@@ -174,7 +174,7 @@ main_func
     ;
 
 statement_list
-    : statement_list NEWLINE statement                      { $$ = $1; $$->push_back($2); }
+    : statement_list LF statement                           { $$ = $1; $$->push_back($2); }
     | statement                                             { $$ = new StatList(); $$->push_back($1); }
     |                                                       { $$ = new StatList(); }
     ;
@@ -196,15 +196,13 @@ compound_statement
     ;
 
 branch_statement
-    : IF '(' expression ')' statement                       { $$ = new IfStat($3, $5, nullptr); }
-    | IF '(' expression ')' statement ELSE statement        { $$ = new IfStat($3, $5, $7); }
+    : IF '(' expression ')' compound_statement              { $$ = new IfStat($3, $5, nullptr); }
+    | IF '(' expression ')' compound_statement ELSE compound_statement  { $$ = new IfStat($3, $5, $7); }
     ;
 
-iteration_statement
-    : WHILE '(' expression ')' statement                    { $$ = new ForStat(nullptr, $3, nullptr, $5, TypeOfIteration::WHILE); }
-    | DO statement WHILE '(' expression ')'                 { $$ = new ForStat(nullptr, $5, nullptr, $2, TypeOfIteration::DO_WHILE); }
-    | FOR '(' expr_statement expr_statement ')' statement   { $$ = new ForStat($3, $4, nullptr, $6, TypeOfIteration::FOR); }
-    | FOR '(' expr_statement expr_statement expression ')' statement    { $$ = new ForStat($3, $4, $5, $7, TypeOfIteration::FOR); }
+for_statement
+    : WHILE '(' expression ')' compound_statement           { $$ = new WhileStat($3, $5); }
+    | FOR name IN '[' INTEGER INTEGER INTEGER ']' compound_statement    { $$ = new ForStat($2, $5, $6, $9); }
     ;
 
 jump_statement

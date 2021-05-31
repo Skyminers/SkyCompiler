@@ -31,6 +31,12 @@ private:
     Module *module;
     uint layoutID;
     Function *scan, *print;
+public:
+    Function *getScan() const;
+    Function *getPrint() const;
+    Function *getMain() const;
+
+private:
     Function *main;
     stack<Function*> funcList;
     vector<BasicBlock*> blockID;
@@ -66,11 +72,21 @@ public:
     void createMainFunction();
 
     /*
-     * Array type is different from normal var.
+     * Below two function is used to find var by name.
+     * Note: Array type is different from normal var.
      * */
     SkyArrayType* findArrayValue(string varName);
     Value* findVarByName(string varName);
 
+    /*
+     * Below function is used to maintain function stack.
+     * - nowFunction : return current function
+     * - enterFunction : enter a new function (this func should be called when you call a new function)
+     * - exitFunction : exit current function (this func should be called when you meet return in function)
+     * */
+    Function* nowFunction(){ return funcList.top();}
+    void enterFunction(Function* func){ funcList.push(func);}
+    void exitFunction(){ funcList.pop(); }
 
     void compile();
 };

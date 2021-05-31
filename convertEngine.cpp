@@ -3,6 +3,7 @@
 //
 
 #include "convertEngine.h"
+#include "CompileException.h"
 
 ConvertEngine engine;
 
@@ -26,8 +27,32 @@ Value* ConvertEngine::findVarByName(string varName) {
     auto result = nowFunc->getValueSymbolTable()->lookup(varName);
     if(result != nullptr) return result;
     result = module->getGlobalVariable(varName);
+    if(result == nullptr){
+        throw VarNotFound(varName + " not found");
+    }
+    return result;
 }
+
+Function *ConvertEngine::getScan() const {
+    return scan;
+}
+
+Function *ConvertEngine::getPrint() const {
+    return print;
+}
+
+Function *ConvertEngine::getMain() const {
+    return main;
+}
+
+
 // Unit test
 int main() {
+    engine.createMainFunction();
+    auto mainFunc = engine.getMain();
+    auto mainBlock = BasicBlock::Create(context, "main", mainFunc);
+    engine.enterFunction(mainFunc);
+    builder.SetInsertPoint(mainBlock);
+    builder.CreateRet(builder.getInt32(0));
     engine.compile();
 }

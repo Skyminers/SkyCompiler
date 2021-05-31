@@ -23,5 +23,11 @@ public:
     VarNotFound(std::string msg): CompileException(msg){}
 };
 
+class FuncNotFound : CompileException{
+public:
+    FuncNotFound(std::string msg): CompileException(msg){}
+};
+
+
 
 #endif //COMPILEEXCEPTION_H

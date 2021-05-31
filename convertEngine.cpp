@@ -36,6 +36,12 @@ Value* ConvertEngine::findVarByName(string varName) {
     return result;
 }
 
+Function* ConvertEngine::askForFunction(string funcName) {
+    auto func = module->getFunction(funcName);
+    if(func == nullptr) throw FuncNotFound(funcName + " not found");
+    return func;
+}
+
 Function *ConvertEngine::getScan() const {
     return scan;
 }

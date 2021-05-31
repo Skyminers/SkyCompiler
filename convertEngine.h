@@ -88,6 +88,7 @@ public:
     void enterFunction(Function* func){ funcList.push(func);}
     void exitFunction(){ funcList.pop(); }
 
+    Function* askForFunction(string funcName);
     void compileToFile(string fileName);
 };
 

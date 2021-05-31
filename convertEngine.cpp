@@ -2,19 +2,22 @@
 // Created by 刘一辰 on 2021/5/20.
 //
 
+#include <fstream>
 #include "convertEngine.h"
 #include "CompileException.h"
 
 ConvertEngine engine;
 
-void ConvertEngine::compile() {
-    module->print(dbgs(), nullptr);
+void ConvertEngine::compileToFile(string fileName) {
+    error_code ErrInfo;
+    raw_ostream *out = new raw_fd_ostream(fileName, ErrInfo, sys::fs::CreationDisposition());
+    module->print(*out , nullptr);
 }
 
 void ConvertEngine::createMainFunction() {
     vector<Type*> valuesType;
-    auto funcType = FunctionType::get(builder.getInt32Ty(), makeArrayRef(valuesType), false);
-    main = Function::Create(funcType, GlobalValue::InternalLinkage, "main", module);
+    auto funcType = FunctionType::get(builder.getVoidTy(), makeArrayRef(valuesType), false);
+    main = Function::Create(funcType, GlobalValue::ExternalLinkage, "main", module);
 }
 
 SkyArrayType* ConvertEngine::findArrayValue(string varName) {
@@ -53,6 +56,7 @@ int main() {
     auto mainBlock = BasicBlock::Create(context, "main", mainFunc);
     engine.enterFunction(mainFunc);
     builder.SetInsertPoint(mainBlock);
-    builder.CreateRet(builder.getInt32(0));
-    engine.compile();
+    builder.CreateRetVoid();
+//    builder.CreateRet(builder.getInt32(0));
+    engine.compileToFile("skyModule");
 }

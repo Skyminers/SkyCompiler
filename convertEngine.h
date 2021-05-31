@@ -88,7 +88,7 @@ public:
     void enterFunction(Function* func){ funcList.push(func);}
     void exitFunction(){ funcList.pop(); }
 
-    void compile();
+    void compileToFile(string fileName);
 };
 
 #endif //CONVERTENGINE_H

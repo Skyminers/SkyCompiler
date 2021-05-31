@@ -10,7 +10,7 @@ Sky 语言编译器
 * 周思颖 3180104714
 
 ## 设计要点:
-0. 不用分号, 换行作为分割
+0. 使用分号 `;` 作为语句分割
 1. `begin`, `end` 用 `{` , `}` 来代替
 2. 注释使用 `//` 与 , `/**/` 来表示 （禁止嵌套注释）
 3. 用 var 声明变量， let 声明常量 (整数默认为 int)
@@ -30,9 +30,25 @@ Sky 语言编译器
 9. 动态空间分配：
     - 分配: var a = new int[233], var a = new int, var a = new Object()
     - 删除: delete a
-10. if 语句 与 for 语句 采用 C++ 形式
+10. if 语句 采用 C++ 形式
+11. 由于我们知道再详细的描述都不如一个例子来的直观，所以剩下的看下面的例子吧
 
 至于剩下的，看完了 [LLVM](https://github.com/Evian-Zhang/llvm-ir-tutorial/blob/master/LLVM%20IR%E5%85%A5%E9%97%A8%E6%8C%87%E5%8D%97(1)%E2%80%94%E2%80%94LLVM%E6%9E%B6%E6%9E%84%E7%AE%80%E4%BB%8B.md) 再说？
+
+## Some Example
+
+### 1. for 循环
+
+```
+for i in [1,10,1] {
+   printf("%d", i)
+}
+// result: 123456789
+
+for 循环变量名 in [起始值, 终止值, 每次循环增量] {
+   被循环的语句
+}
+```
 
 
 ## 进阶主题：

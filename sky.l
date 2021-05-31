@@ -23,7 +23,7 @@ using namespace std;
 "else"                        {return ELSE;}
 "for"                         {return FOR;} 
 "while"                       {return WHILE;}
-"do"                          {return DO;}
+"in"                          {return IN;}
 "continue"                    {return CONTINUE;}
 "break"                       {return BREAK;}
 "class"                       {return CLASS;}
@@ -83,7 +83,7 @@ using namespace std;
 ">="                          {return OP_GE;}
 "=="                          {return OP_EQ;}         
 "!="                          {return OP_NE;}
-\n                            {return NEWLINE;}                              
+\n                            {return LF;}
 "//"                          {return SLC;}        /*single-line comment*/
 "/*"                          {return BoC;}        /*beginning of comment*/
 "*/"                          {return EoC;}        /*end of comment*/

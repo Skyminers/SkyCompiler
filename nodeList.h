@@ -428,24 +428,32 @@ private:
 
 class IfStat: public StatNode {
 public:
-    IfStat(ExprNode *condExpr, StatNode *thenStat, StatNode *elseStat): condExpr(condExpr), thenStat(thenStat), elseStat(elseStat) { }
+    IfStat(ExprNode *condExpr, CompoundStat *thenStat, CompoundStat *elseStat): condExpr(condExpr), thenStat(thenStat), elseStat(elseStat) { }
     Value *convertToCode() override;
 
 private:
     ExprNode *condExpr;
-    StatNode *thenStat, *elseStat;
+    CompoundStat *thenStat, *elseStat;
 };
 
-// including for/while/do..while
-class IterationStat: public StatNode {
+class ForStat: public StatNode {
 public:
-    IterationStat(ExprNode *init, ExprNode *condition, ExprNode *step, StatNode *body, TypeOfIteration type):
-         init(init), condition(condition), step(step), body(body), type(type) { }
+    ForStat(Identifier *forVar, int start, int end, int step, CompoundStat* body):
+         forVar(forVar), start(start), end(end), step(step), body(body) { }
 
 private:
-    ExprNode *init, *condition, *step;
+    int start, end, step;
     StatNode *body;
-    TypeOfIteration type;
+    Identifier *forVar;
+};
+
+class WhileStat: public StatNode {
+public:
+    WhileStat(ExprNode *cond, CompoundStat* body): cond(cond), body(body) { }
+
+private:
+    ExprNode *cond;
+    CompoundStat *body;
 };
 
 class JumpStat: public StatNode {

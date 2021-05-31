@@ -16,7 +16,7 @@ void ConvertEngine::compileToFile(string fileName) {
 
 void ConvertEngine::createMainFunction() {
     vector<Type*> valuesType;
-    auto funcType = FunctionType::get(builder.getVoidTy(), makeArrayRef(valuesType), false);
+    auto funcType = FunctionType::get(builder.getInt32Ty(), makeArrayRef(valuesType), false);
     main = Function::Create(funcType, GlobalValue::ExternalLinkage, "main", module);
 }
 

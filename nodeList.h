@@ -55,7 +55,7 @@ enum SkyTypes {
     SKY_VOID,
     SKY_VAR,
 //    SKY_ENUM,
-//    SKY_RECORD,
+    SKY_CLASS,
 //    SKY_ENUM_RANGE,
 //    SKY_USER_DEFINE,
 };
@@ -152,6 +152,8 @@ public:
     void addClassDec(ClassDec *cd) {
         classDecList->push_back(cd);
     }
+
+    Value *convertToCode() override;
 
 private:
     ConstDecList *constDecList;
@@ -324,10 +326,10 @@ public:
 //    Type* toLLVMType();
 //    Constant* initValue(ConstValue *v = nullptr);
 
-private:
     SkyArrayType *arrayType{};
     SkyVarType varType;
     SkyTypes myType;
+private:
 };
 
 class Identifier: public ExprNode {
@@ -347,8 +349,6 @@ public:
     VarDec(Identifier *id, SkyType *type): myId(id), myType(type) { }
     Value *convertToCode() override;
 
-
-private:
     Identifier *myId;
     SkyType *myType;
 };

@@ -137,31 +137,6 @@ private:
     FuncDec *mainFunc;
 };
 
-class GlobalArea: public StatNode {
-public:
-    GlobalArea() = default;
-    void addConstDec(ConstDecList *cd) {
-        constDecList->insert(constDecList->end(), cd->begin(), cd->end());
-    }
-    void addVarDec(VarDecList *vd) {
-        varDecList->insert(varDecList->end(), vd->begin(), vd->end());
-    }
-    void addFuncDec(FuncDec *fd) {
-        funcDecList->push_back(fd);
-    }
-    void addClassDec(ClassDec *cd) {
-        classDecList->push_back(cd);
-    }
-
-    Value *convertToCode() override;
-
-private:
-    ConstDecList *constDecList;
-    VarDecList *varDecList;
-    FuncDecList *funcDecList;
-    ClassDecList *classDecList;
-};
-
 class ConstValue: public ExprNode{
 public:
     Value *convertToCode() override;
@@ -334,11 +309,12 @@ private:
 
 class Identifier: public ExprNode {
 public:
-    explicit Identifier(string name): myIdName(name) { }
+    explicit Identifier(string name): myIdName(name){ }
     string getName() {
         return myIdName;
     }
     Value *convertToCode() override;
+
 
 private:
     string myIdName;
@@ -346,22 +322,35 @@ private:
 
 class VarDec: public StatNode {
 public:
-    VarDec(Identifier *id, SkyType *type): myId(id), myType(type) { }
+    VarDec(Identifier *id, SkyType *type): myId(id), myType(type), global(false) { }
     Value *convertToCode() override;
-
+    bool isGlobal() const {
+        return this->global;
+    }
+    void setGlobal() {
+        this->global = true;
+    }
     Identifier *myId;
     SkyType *myType;
+    bool global;
 };
 
 class ConstDec: public StatNode {
 public:
-    ConstDec(Identifier *id, ConstValue *cv): myId(id), myValue(cv) { }
+    ConstDec(Identifier *id, ConstValue *cv): myId(id), myValue(cv), global(false) { }
     Value *convertToCode() override;
+    bool isGlobal() const {
+        return this->global;
+    }
+    void setGlobal() {
+        this->global = true;
+    }
 
 private:
     Identifier *myId;
     ConstValue *myValue;
     SkyType *myType{};
+    bool global;
 };
 
 class TypeDec: public StatNode {
@@ -443,7 +432,7 @@ public:
 
 private:
     int start, end, step;
-    StatNode *body;
+    CompoundStat *body;
     Identifier *forVar;
 };
 
@@ -506,6 +495,35 @@ public:
 private:
     Identifier *id;
     ExprList *args;
+};
+
+class GlobalArea: public StatNode {
+public:
+    GlobalArea() = default;
+    void addConstDec(ConstDecList *cd) {
+        for (auto & constDec : *cd) {
+            constDec->setGlobal();
+        }
+        constDecList->insert(constDecList->end(), cd->begin(), cd->end());
+    }
+    void addVarDec(VarDecList *vd) {
+        for (auto & varDec : *vd) {
+            varDec->setGlobal();
+        }
+        varDecList->insert(varDecList->end(), vd->begin(), vd->end());
+    }
+    void addFuncDec(FuncDec *fd) {
+        funcDecList->push_back(fd);
+    }
+    void addClassDec(ClassDec *cd) {
+        classDecList->push_back(cd);
+    }
+
+private:
+    ConstDecList *constDecList;
+    VarDecList *varDecList;
+    FuncDecList *funcDecList;
+    ClassDecList *classDecList;
 };
 
 #endif

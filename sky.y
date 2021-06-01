@@ -1,6 +1,7 @@
 %{
 #include <string>
 #include <cstdio>
+#include "nodeList.h"
 
 void yyerror(char *s){
     printf("[Error]: %s", s);
@@ -41,6 +42,8 @@ extern int yylex();
     ClassBody *classBody;
     FuncDecList *funcDecList;
     StatNode *statement;
+    IdentifierList *idList;
+    ScanStat *scanStat;
 }
 
 %type<program>                          program
@@ -57,16 +60,18 @@ extern int yylex();
 %type<compoundStat>                     compound_statement
 %type<statList>                         statement_list
 %type<ifStat>                           branch_statement
-%type<statement>                        for_statement
+%type<statement>                        for_statement statement
 %type<jumpStat>                         jump_statement
-%type<expression>                       expr_statement expression expression_or expression_and expr expr_shift term factor number
+%type<expression>                       expression expression_or expression_and expr expr_shift term factor number
 %type<exprList>                         expression_list
 %type<assignStat>                       assign_statement
 %type<printStat>                        print_statement
 %type<classDec>                         class_declaration
-%type<identifier>                       inherit_part
+%type<identifier>                       inherit_part name
 %type<classBody>                        class_body
 %type<funcDecList>                      func_declaration_list
+%type<idList>                           name_list
+%type<scanStat>                         scan_statement
 
 %token<iVal> INTEGER
 %token<fVal> FLOAT
@@ -75,7 +80,7 @@ extern int yylex();
 %token<sVal> STRING IDENTIFIER
 %token<bVal> BOOLEAN
 
-%token  MAIN PRINT
+%token  MAIN PRINT SCAN
         VAR LET NEW DELETE
         FUNCTION BREAK CONTINUE RETURN
         IF ELSE FOR WHILE IN
@@ -86,7 +91,7 @@ extern int yylex();
         TYPE_BOOL TYPE_BOOL_POINTER
         SLC BoC EoC
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
-        OP_PLUS OP_MINUS OP_MUL OP_DIV OP_MOD OP_RIGHT OP_LEFT OP_INC OP_DEC OP_PTR OP_AND OP_OR
+        OP_PLUS OP_MINUS OP_MUL OP_DIV OP_MOD OP_RIGHT OP_LEFT OP_INC OP_DEC OP_PTR OP_AND OP_OR OP_NOT
         OP_LT OP_LE OP_GT OP_GE OP_EQ OP_NE
         LF
 
@@ -136,8 +141,8 @@ var_list
     ;
 
 var_expr
-    : name '=' expression
-    | name ':' type_declaration                             { $$ = new VarDec($1, $3); }
+    : name '=' expression                                   { $$ = new VarDec($1, nullptr, $3); }
+    | name ':' type_declaration                             { $$ = new VarDec($1, $3, nullptr); }
     ;
 
 type_declaration
@@ -174,7 +179,7 @@ main_func
     ;
 
 statement_list
-    : statement_list LF statement                           { $$ = $1; $$->push_back($2); }
+    : statement_list LF statement                           { $$ = $1; $$->push_back($3); }
     | statement                                             { $$ = new StatList(); $$->push_back($1); }
     |                                                       { $$ = new StatList(); }
     ;
@@ -182,11 +187,12 @@ statement_list
 statement
     : compound_statement                                    { $$ = $1; }
     | branch_statement                                      { $$ = $1; }
-    | iteration_statement                                   { $$ = $1; }
+    | for_statement                                         { $$ = $1; }
     | expression                                            { $$ = $1; }
     | jump_statement                                        { $$ = $1; }
     | assign_statement                                      { $$ = $1; }
     | print_statement                                       { $$ = $1; }
+    | scan_statement                                        { $$ = $1; }
     | var_declaration                                       { $$ = $1; }
     | const_declaration                                     { $$ = $1; }
     ;
@@ -210,11 +216,6 @@ jump_statement
     | CONTINUE                                              { $$ = new JumpStat(TypeOfJump::CONTINUE, nullptr); }
     | RETURN                                                { $$ = new JumpStat(TypeOfJump::RETURN, nullptr); }
     | RETURN expression                                     { $$ = new JumpStat(TypeOfJump::RETURN, $2); }
-    ;
-
-expr_statement
-    : ';'                                                   { $$ = nullptr; }
-    | expression ';'                                        { $$ = $1; }
     ;
 
 expression
@@ -257,11 +258,7 @@ term
     ;
 
 factor
-    : OP_INC factor
-    | factor OP_INC
-    | OP_DEC factor
-    | factor OP_DEC
-    | OP_MINUS factor                                       { $$ = new BinaryExpr(new Integer(0), BinaryOperators::OP_MINUS, $2); }
+    : OP_MINUS factor                                       { $$ = new BinaryExpr(new Integer(0), BinaryOperators::OP_MINUS, $2); }
     | OP_NOT factor                                         { $$ = new BinaryExpr(new Boolean(true), BinaryOperators::OP_XOR, $2); }
     | number                                                { $$ = $1; }
     ;
@@ -291,6 +288,15 @@ print_statement
     : PRINT '(' expression_list ')'                         { $$ = new PrintStat($3); }
     ;
 
+scan_statement
+    : SCAN '(' name_list ')'                                { $$ = new ScanStat($3); }
+    ;
+
+name_list
+    : name_list IDENTIFIER                                  { $$ = $1; $$->push_back($2); }
+    | IDENTIFIER                                            { $$ = new IdentifierList(); $$->push_back($1); }
+    ;
+
 name
     : IDENTIFIER                                            { $$ = new Identifier($1); }
     ;
@@ -314,7 +320,6 @@ class_init
 
 class_del
     : FUNCTION DEL '(' var_list ')' OP_PTR var_type compound_statement      { $$ = new FuncDec(new Identifier(DEL), $4, $7, $8); }
-    |                                                       { $$ = nullptr; }
     ;
 
 func_declaration_list

@@ -298,7 +298,7 @@ public:
     explicit SkyType(SkyVarType varType): varType(varType), myType(SKY_VAR) { }
     SkyType(): myType(SKY_VOID) { }
     Value *convertToCode() override;
-//    Type* toLLVMType();
+    Type* toLLVMType();
 //    Constant* initValue(ConstValue *v = nullptr);
 
     SkyArrayType *arrayType{};

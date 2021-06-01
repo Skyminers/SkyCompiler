@@ -30,7 +30,8 @@ using namespace std;
 "__init__"                    {return INIT;}         /*构造函数*/
 "__del__"                     {return DEL;}          /*析构函数*/
 "this"                        {return THIS;}         /*自身指针*/
-"print"                       {return PRINT;}
+"printf"                      {return PRINT;}
+"scanf"                       {return SCAN;}
 
 "int"                         {return TYPE_INT;}
 "int*"                        {return TYPE_INT_POINTER;}
@@ -93,18 +94,18 @@ using namespace std;
                                 return CHAR;    
                               }
 
+  /*Only lowercase true and false are allowed.*/
+"true"|"false"                {
+                                bool tmp;
+                                sscanf(yytext, "%d", &tmp);
+                                yylval.bVal = tmp;
+                                return BOOLEAN;
+                              }
+
 [a-zA-Z_][a-zA-Z0-9_]*        { 
                                 yylval.sVal = new std::string(yytext, yyleng);
                                 return STRING; 
                               }
-
-  /*Only lowercase true and false are allowed.*/
-"true"|"false"                {   
-                                bool tmp;
-                                sscanf(yytext, "%d", &tmp);
-                                yylval.bVal = tmp;
-                                return BOOLEAN;  
-                              }  
 
 [0-9]+\.[0-9]+                { 
                                 double tmp;

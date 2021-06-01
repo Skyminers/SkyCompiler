@@ -8,6 +8,7 @@
 #include "llvm/IR/Value.h"
 #include "defineList.h"
 #include <iostream>
+#include <utility>
 #include <vector>
 
 using namespace llvm;
@@ -227,7 +228,7 @@ private:
 
 class SkyChar: public ConstValue {
 public:
-    explicit SkyChar(float v) {
+    explicit SkyChar(char v) {
         myChar.cVal = v;
     }
     SkyVarType getType() override {
@@ -247,7 +248,7 @@ private:
 
 class SkyString: public ConstValue {
 public:
-    explicit SkyString(string v) {
+    explicit SkyString(const string& v) {
         myString.sVal = (char*)v.c_str();
     }
     SkyVarType getType() override {
@@ -295,21 +296,21 @@ private:
 class SkyType: public StatNode {
 public:
     explicit SkyType(SkyArrayType *arrayType): arrayType(arrayType), myType(SKY_ARRAY) { }
-    explicit SkyType(SkyVarType varType): varType(varType), myType(SKY_VAR) { }
+    explicit SkyType(SkyVarType *varType): varType(varType), myType(SKY_VAR) { }
     SkyType(): myType(SKY_VOID) { }
     Value *convertToCode() override;
 //    Type* toLLVMType();
 //    Constant* initValue(ConstValue *v = nullptr);
 
     SkyArrayType *arrayType{};
-    SkyVarType varType;
+    SkyVarType *varType{};
     SkyTypes myType;
 private:
 };
 
 class Identifier: public ExprNode {
 public:
-    explicit Identifier(string name): myIdName(name){ }
+    explicit Identifier(string name): myIdName(std::move(name)){ }
     string getName() {
         return myIdName;
     }
@@ -322,7 +323,7 @@ private:
 
 class VarDec: public StatNode {
 public:
-    VarDec(Identifier *id, SkyType *type): myId(id), myType(type), global(false) { }
+    VarDec(Identifier *id, SkyType *type, ExprNode* expr): myId(id), myType(type), expr(expr), global(false) { }
     Value *convertToCode() override;
     bool isGlobal() const {
         return this->global;
@@ -331,7 +332,8 @@ public:
         this->global = true;
     }
     Identifier *myId;
-    SkyType *myType;
+    SkyType *myType;    // if myType == nullptr, need Type Inference
+    ExprNode *expr;     // when myType == nullptr, calculate this expr to get the type
     bool global;
 };
 
@@ -391,7 +393,7 @@ public:
     ClassDec(Identifier *name, Identifier *father, ClassBody *body): name(name), father(father), body(body) { }
 
 private:
-    Identifier *name, *father;
+    Identifier *name, *father; // father can be null
     ClassBody *body;
 };
 
@@ -402,8 +404,8 @@ public:
     AssignStat(Identifier *id, Identifier *cid, ExprNode *expr): targetId(id), childId(cid), expr(expr), type(CLASS_ASSIGN) { }
 
 private:
-    Identifier *targetId, *childId;
-    ExprNode *expr, *subInd;
+    Identifier *targetId, *childId{};
+    ExprNode *expr, *subInd{};
     AssignType type;
 };
 
@@ -413,6 +415,12 @@ public:
 
 private:
     ExprList *exprList;
+};
+
+class ScanStat: public StatNode {
+public:
+    explicit ScanStat(IdentifierList *nameList): nameList(nameList) { }
+    IdentifierList *nameList;
 };
 
 class IfStat: public StatNode {
@@ -456,7 +464,7 @@ private:
 
 class CompoundStat: public StatNode {
 public:
-    CompoundStat(StatList *statList): statList(statList) { }
+    explicit CompoundStat(StatList *statList): statList(statList) { }
 
 private:
     StatList *statList;
@@ -520,10 +528,10 @@ public:
     }
 
 private:
-    ConstDecList *constDecList;
-    VarDecList *varDecList;
-    FuncDecList *funcDecList;
-    ClassDecList *classDecList;
+    ConstDecList *constDecList{};
+    VarDecList *varDecList{};
+    FuncDecList *funcDecList{};
+    ClassDecList *classDecList{};
 };
 
 #endif

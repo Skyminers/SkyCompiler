@@ -27,7 +27,7 @@ extern int yylex();
     VarDecList *varDecList;
     SkyTypes *skyTypes;
     SkyVarType *skyVarType;
-    SkyArrayType *skyArrayType;
+    SkyArray *skyArray;
     FuncDec *funcDec;
     CompoundStat *compoundStat;
     StatList *statList;
@@ -36,14 +36,11 @@ extern int yylex();
     ExprNode *expression;
     ExprList *exprList;
     AssignStat *assignStat;
-    PrintStat *printStat;
     ClassDec *classDec;
     Identifier *identifier;
     ClassBody *classBody;
     FuncDecList *funcDecList;
     StatNode *statement;
-    IdentifierList *idList;
-    ScanStat *scanStat;
 }
 
 %type<program>                          program
@@ -55,7 +52,7 @@ extern int yylex();
 %type<varDecList>                       var_declaration var_list
 %type<skyTypes>                         type_declaration
 %type<skyVarType>                       var_type
-%type<skyArrayType>                     array_type_declaration
+%type<skyArray>                         array_type_declaration
 %type<funcDec>                          func_declaration main_func class_init class_del
 %type<compoundStat>                     compound_statement
 %type<statList>                         statement_list
@@ -65,13 +62,10 @@ extern int yylex();
 %type<expression>                       expression expression_or expression_and expr expr_shift term factor number
 %type<exprList>                         expression_list
 %type<assignStat>                       assign_statement
-%type<printStat>                        print_statement
 %type<classDec>                         class_declaration
 %type<identifier>                       inherit_part name
 %type<classBody>                        class_body
 %type<funcDecList>                      func_declaration_list
-%type<idList>                           name_list
-%type<scanStat>                         scan_statement
 
 %token<iVal> INTEGER
 %token<fVal> FLOAT
@@ -91,7 +85,7 @@ extern int yylex();
         TYPE_BOOL TYPE_BOOL_POINTER
         SLC BoC EoC
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
-        OP_PLUS OP_MINUS OP_MUL OP_DIV OP_MOD OP_RIGHT OP_LEFT OP_INC OP_DEC OP_PTR OP_AND OP_OR OP_NOT
+        OP_PLUS OP_MINUS OP_DIV OP_MOD OP_RIGHT OP_LEFT OP_INC OP_DEC OP_PTR OP_AND OP_OR OP_NOT
         OP_LT OP_LE OP_GT OP_GE OP_EQ OP_NE
         LF
 
@@ -128,7 +122,7 @@ const_value
     | DOUBLE                                                { $$ = new SkyDouble($1); }
     | CHAR                                                  { $$ = new SkyChar($1); }
     | BOOLEAN                                               { $$ = new SkyBool($1); }
-    | STRING                                                { $$ = new SkyString($1); }
+    | STRING                                                { $$ = new SkyCharPointer($1); }
     ;
 
 var_declaration
@@ -151,7 +145,7 @@ type_declaration
     ;
 
 array_type_declaration
-    : var_type '[' INTEGER ']'                              { $$ = new SkyArrayType($1, $3); }
+    : var_type '[' INTEGER ']'                              { $$ = new SkyArray($1, $3); }
     ;
 
 var_type
@@ -191,8 +185,6 @@ statement
     | expression                                            { $$ = $1; }
     | jump_statement                                        { $$ = $1; }
     | assign_statement                                      { $$ = $1; }
-    | print_statement                                       { $$ = $1; }
-    | scan_statement                                        { $$ = $1; }
     | var_declaration                                       { $$ = $1; }
     | const_declaration                                     { $$ = $1; }
     ;
@@ -251,7 +243,7 @@ expr_shift
     ;
 
 term
-    : term OP_MUL factor                                    { $$ = new BinaryExpr($1, BinaryOperators::OP_MUL, $3); }
+    : term '*' factor                                    { $$ = new BinaryExpr($1, BinaryOperators::OP_MUL, $3); }
     | term OP_DIV factor                                    { $$ = new BinaryExpr($1, BinaryOperators::OP_DIV, $3); }
     | term OP_MOD factor                                    { $$ = new BinaryExpr($1, BinaryOperators::OP_MOD, $3); }
     | factor                                                { $$ = $1; }
@@ -270,6 +262,10 @@ number
     | name '(' expression_list ')'                          { $$ = new FuncCall($1, $3); }
     | const_value                                           { $$ = $1; }
     | name                                                  { $$ = $1; }
+    | '*' name '[' expression ']'                           { $$ = new ArrayRef($2, $4, true); }
+    | '*' name '.' name                                     { $$ = new ClassRef($2, $4, true); }
+    | '*' name '(' expression_list ')'                      { $$ = new FuncCall($2, $4, true); }
+    | '*' name                                              { $$=  new IdentifierPointer($2); }
     ;
 
 expression_list
@@ -282,19 +278,9 @@ assign_statement
     : name '=' expression                                   { $$ = new AssignStat($1, $3); }
     | name '[' expression ']' '=' expression                { $$ = new AssignStat($1, $3, $6); }
     | name '.' name '=' expression                          { $$ = new AssignStat($1, $3, $5); }
-    ;
-
-print_statement
-    : PRINT '(' expression_list ')'                         { $$ = new PrintStat($3); }
-    ;
-
-scan_statement
-    : SCAN '(' name_list ')'                                { $$ = new ScanStat($3); }
-    ;
-
-name_list
-    : name_list IDENTIFIER                                  { $$ = $1; $$->push_back($2); }
-    | IDENTIFIER                                            { $$ = new IdentifierList(); $$->push_back($1); }
+    | '*' name '=' expression                               { $$ = new AssignStat($2, $4, true); }
+    | '*' name '[' expression ']' '=' expression            { $$ = new AssignStat($2, $4, $7, true); }
+    | '*' name '.' name '=' expression                      { $$ = new AssignStat($2, $4, $6, true); }
     ;
 
 name

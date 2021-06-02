@@ -30,8 +30,6 @@ using namespace std;
 "__init__"                    {return INIT;}         /*构造函数*/
 "__del__"                     {return DEL;}          /*析构函数*/
 "this"                        {return THIS;}         /*自身指针*/
-"printf"                      {return PRINT;}
-"scanf"                       {return SCAN;}
 
 "int"                         {return TYPE_INT;}
 "int*"                        {return TYPE_INT_POINTER;}
@@ -68,7 +66,7 @@ using namespace std;
 "!"                           {return OP_NOT;}
 "+"                           {return OP_PLUS;}           
 "-"                           {return OP_MINUS;}           
-"*"                           {return OP_MUL;}           
+"*"                           {return('*');}
 "/"                           {return OP_DIV;} 
 "%"                           {return OP_MOD;} 
 ">>"                          {return OP_RIGHT;}

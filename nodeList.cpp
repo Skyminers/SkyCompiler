@@ -54,7 +54,7 @@ Value * FuncDec::convertToCode() {
 }
 
 Type * SkyType::toLLVMType() {
-    switch (varType) {
+    switch (*varType) {
         case SkyVarType::SKY_INT: return llvm::Type::getInt32Ty(context);
         case SkyVarType::SKY_INT_64: return llvm::Type::getInt64Ty(context);
         case SkyVarType::SKY_CHAR: return llvm::Type::getInt8Ty(context);

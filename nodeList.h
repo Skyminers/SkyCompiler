@@ -46,19 +46,13 @@ enum SkyVarType {
     SKY_DOUBLE,
     SKY_DOUBLE_POINTER,
     SKY_BOOL,
-    SKY_BOOL_POINTER,
-    SKY_STRING
+    SKY_BOOL_POINTER
 };
 
 enum SkyTypes {
     SKY_ARRAY,
-    SKY_RANGE,
     SKY_VOID,
-    SKY_VAR,
-//    SKY_ENUM,
-    SKY_CLASS,
-//    SKY_ENUM_RANGE,
-//    SKY_USER_DEFINE,
+    SKY_VAR
 };
 
 enum BinaryOperators {
@@ -81,12 +75,6 @@ enum BinaryOperators {
     OP_INC,
     OP_DEC,
     OP_PTR
-};
-
-enum TypeOfIteration {
-    FOR,
-    WHILE,
-    DO_WHILE
 };
 
 enum TypeOfJump {
@@ -246,21 +234,21 @@ private:
     ConstValueUnion myChar{};
 };
 
-class SkyString: public ConstValue {
+class SkyCharPointer: public ConstValue {
 public:
-    explicit SkyString(const string& v) {
-        myString.sVal = (char*)v.c_str();
+    explicit SkyCharPointer(const string& v) {
+        myCharPointer.sVal = (char*)v.c_str();
     }
     SkyVarType getType() override {
-        return SKY_STRING;
+        return SKY_CHAR_POINTER;
     }
     ConstValueUnion getValue() override {
-        return myString;
+        return myCharPointer;
     }
     Value *convertToCode() override;
 
 private:
-    ConstValueUnion myString{};
+    ConstValueUnion myCharPointer{};
 };
 
 class SkyBool: public ConstValue {
@@ -310,14 +298,14 @@ private:
 
 class Identifier: public ExprNode {
 public:
-    explicit Identifier(string name): myIdName(std::move(name)){ }
-    string getName() {
-        return myIdName;
-    }
+    explicit Identifier(string name): myIdName(std::move(name)) { }
     Value *convertToCode() override;
+    string myIdName;
+};
 
-
-private:
+class IdentifierPointer: public ExprNode {
+public:
+    explicit IdentifierPointer(string name): myIdName(std::move(name)) { }
     string myIdName;
 };
 
@@ -399,14 +387,15 @@ private:
 
 class AssignStat: public StatNode {
 public:
-    AssignStat(Identifier *id, ExprNode *expr): targetId(id), expr(expr), type(ID_ASSIGN) { }
-    AssignStat(Identifier *id, ExprNode *subInd, ExprNode *expr): targetId(id), subInd(subInd), expr(expr), type(ARRAY_ASSIGN) { }
-    AssignStat(Identifier *id, Identifier *cid, ExprNode *expr): targetId(id), childId(cid), expr(expr), type(CLASS_ASSIGN) { }
+    AssignStat(Identifier *id, ExprNode *expr, bool isPointer = false): targetId(id), expr(expr), type(ID_ASSIGN), isPointer(isPointer) { }
+    AssignStat(Identifier *id, ExprNode *subInd, ExprNode *expr, bool isPointer = false): targetId(id), subInd(subInd), expr(expr), type(ARRAY_ASSIGN), isPointer(isPointer) { }
+    AssignStat(Identifier *id, Identifier *cid, ExprNode *expr, bool isPointer = false): targetId(id), childId(cid), expr(expr), type(CLASS_ASSIGN), isPointer(isPointer) { }
 
 private:
     Identifier *targetId, *childId{};
     ExprNode *expr, *subInd{};
     AssignType type;
+    bool isPointer;
 };
 
 class PrintStat: public StatNode {
@@ -481,28 +470,31 @@ private:
 
 class ArrayRef: public ExprNode {
 public:
-    ArrayRef(Identifier *id, ExprNode *subInd): id(id), subInd(subInd) { }
+    ArrayRef(Identifier *id, ExprNode *subInd, bool isPointer = false): id(id), subInd(subInd), isPointer(isPointer) { }
 
 private:
     Identifier *id;
     ExprNode *subInd;
+    bool isPointer;
 };
 
 class ClassRef: public ExprNode {
 public:
-    ClassRef(Identifier *id, Identifier *childId): id(id), childId(childId) { }
+    ClassRef(Identifier *id, Identifier *childId, bool isPointer = false): id(id), childId(childId), isPointer(isPointer) { }
 
 private:
     Identifier *id, *childId;
+    bool isPointer;
 };
 
 class FuncCall: public ExprNode, StatNode {
 public:
-    FuncCall(Identifier *id, ExprList *args): id(id), args(args) { }
+    FuncCall(Identifier *id, ExprList *args, bool isPointer = false): id(id), args(args), isPointer(isPointer) { }
 
 private:
     Identifier *id;
     ExprList *args;
+    bool isPointer;
 };
 
 class GlobalArea: public StatNode {
@@ -526,6 +518,7 @@ public:
     void addClassDec(ClassDec *cd) {
         classDecList->push_back(cd);
     }
+    Value *convertToCode() override;
 
 private:
     ConstDecList *constDecList{};

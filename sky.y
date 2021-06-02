@@ -83,7 +83,6 @@ extern int yylex();
         TYPE_CHAR TYPE_CHAR_POINTER
         TYPE_FLOAT TYPE_FLOAT_POINTER TYPE_DOUBLE TYPE_DOUBLE_POINTER
         TYPE_BOOL TYPE_BOOL_POINTER
-        SLC BoC EoC
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
         OP_PLUS OP_MINUS OP_DIV OP_MOD OP_RIGHT OP_LEFT OP_INC OP_DEC OP_PTR OP_AND OP_OR OP_NOT
         OP_LT OP_LE OP_GT OP_GE OP_EQ OP_NE
@@ -200,7 +199,7 @@ branch_statement
 
 for_statement
     : WHILE '(' expression ')' compound_statement           { $$ = new WhileStat($3, $5); }
-    | FOR name IN '[' INTEGER INTEGER INTEGER ']' compound_statement    { $$ = new ForStat($2, $5, $6, $9); }
+    | FOR name IN '[' INTEGER ',' INTEGER ',' INTEGER ']' compound_statement    { $$ = new ForStat($2, $5, $7, $9, $11); }
     ;
 
 jump_statement
@@ -237,8 +236,8 @@ expr
     ;
 
 expr_shift
-    : expr_shift  OP_PLUS term                              { $$ = new BinaryExpr($1, BinaryOperators::OP_PLUS, $3); }
-    | expr_shift  OP_MINUS term                             { $$ = new BinaryExpr($1, BinaryOperators::OP_MINUS, $3); }
+    : expr_shift OP_PLUS term                              { $$ = new BinaryExpr($1, BinaryOperators::OP_PLUS, $3); }
+    | expr_shift OP_MINUS term                             { $$ = new BinaryExpr($1, BinaryOperators::OP_MINUS, $3); }
     | term                                                  { $$ = $1; }
     ;
 

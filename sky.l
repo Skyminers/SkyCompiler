@@ -83,9 +83,10 @@ using namespace std;
 "=="                          {return OP_EQ;}         
 "!="                          {return OP_NE;}
 \n                            {return LF;}
-"//"                          {return SLC;}        /*single-line comment*/
-"/*"                          {return BoC;}        /*beginning of comment*/
-"*/"                          {return EoC;}        /*end of comment*/
+
+"//"[^\n]*                    { }
+
+"/*"			              { comment(); }
 
 \'.\'                         {
                                 yylval.cVal = yytext[1];
@@ -102,7 +103,12 @@ using namespace std;
 
 [a-zA-Z_][a-zA-Z0-9_]*        { 
                                 yylval.sVal = new std::string(yytext, yyleng);
-                                return STRING; 
+                                return IDENTIFIER;
+                              }
+
+\"(\\.|[^\\"])*\"             {
+                                yylval.sVal = new std::string(yytext, yyleng);
+                                return STRING;
                               }
 
 [0-9]+\.[0-9]+                { 
@@ -131,6 +137,17 @@ using namespace std;
 int yyerror(const char *s){
   fprintf(stderr, "error : %s \n", s);
   return 0;
+}
+
+comment() {
+	char c, c1;
+loop:
+	while ((c = input()) != '*' && c != 0) putchar(c);
+	if ((c1 = input()) != '/' && c != 0) {
+		unput(c1);
+		goto loop;
+	}
+	if (c != 0) putchar(c1);
 }
 
 int main(){

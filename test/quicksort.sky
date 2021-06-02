@@ -1,0 +1,31 @@
+var a: int[10010]
+var n: int
+
+func qsort(l : int, r : int) {
+    var i = l, j = r, mid = a[(l + r) >> 1]
+    while (i <= j) {
+        while (a[i] < mid) { i = i + 1 }
+        while (a[j] > mid) { j = j - 1 }
+        if (i <= j) {
+            var tmp = a[i]
+            a[i] = a[j]
+            a[j] = tmp
+            i = i + 1
+            j = j - 1
+        }
+    }
+    if (l < j) { qsort(l, j) }
+    if (i < r) { qsort(i, r) }
+}
+
+func main() -> int {
+    scanf("%d", &n)
+    for i in [0, n - 1, 1] {
+        scanf(%d", &a[i])
+    }
+    qsort(1, n)
+    for i in [0, n - 1, 1] {
+        printf("%d\n", a[i])
+    }
+    return 0
+}

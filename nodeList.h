@@ -33,7 +33,15 @@ typedef vector<VarDec*>     VarDecList;
 typedef vector<ExprNode*>   ExprList;
 typedef vector<ClassDec*>   ClassDecList;
 
-
+// enum type of variable and const
+// const type only contains: int, char, float, double, char*, bool
+// Example:
+//          123    -> new SkyInt(123) -> SkyInt.value.iVal = 123, SkyInt.getType() = SKY_INT
+//          '1'    -> new SkyChar('1') -> SkyChar.value.cVal = '1', SkyChar.getType() = SKY_CHAR
+//          1.23f  -> new SkyFloat(1.23f) -> SkyFloat.value.fVal = 1.23f, SkyFloat.getType() = SKY_FLOAT
+//          1.23   -> new SkyDouble(1.23) -> SkyDouble.value.dVal = 1.23, SkyDouble.getType() = SKY_DOUBLE
+//          "123"  -> new SkyCharPointer("123") -> SkyCharPointer.value.sVal = "123", SkyCharPointer.getType() = SKY_CHAR_POINTER
+//          true   -> new SkyBool(true) -> SkyBool.value.bVal = true, SkyBool.getType() = SKY_BOOl
 enum SkyVarType {
     SKY_INT,
     SKY_INT_POINTER,
@@ -47,6 +55,15 @@ enum SkyVarType {
     SKY_DOUBLE_POINTER,
     SKY_BOOL,
     SKY_BOOL_POINTER
+};
+
+union ConstValueUnion{
+    int iVal;
+    bool bVal;
+    char cVal;
+    char* sVal;
+    float fVal;
+    double dVal;
 };
 
 enum SkyTypes {
@@ -89,26 +106,20 @@ enum AssignType {
     CLASS_ASSIGN
 };
 
-union ConstValueUnion{
-    int iVal;
-    long long i64Val;
-    bool bVal;
-    char cVal;
-    char* sVal;
-    float fVal;
-    double dVal;
-};
-
 class ASTNode{
 public:
     virtual Value *convertToCode() = 0;
     virtual ~ASTNode() = default;
 };
 
+// the node for expression
+// expression has return value
 class ExprNode: public ASTNode {
 
 };
 
+// the node for statement
+// statement doesn't have return value
 class StatNode: public ASTNode {
 public:
 //    void forward();
@@ -116,6 +127,7 @@ public:
 //    BasicBlock *afterBB{};
 };
 
+// Program is split into GlobalArea and MainFunction
 class Program: public StatNode {
 public:
     Program(GlobalArea *globalArea, FuncDec *mainFunc): globalArea(globalArea), mainFunc(mainFunc) { }
@@ -137,181 +149,165 @@ public:
 class SkyInt : public ConstValue {
 public:
     explicit SkyInt(int v) {
-        myInt.iVal = v;
+        value.iVal = v;
     }
     SkyVarType getType() override {
         return SKY_INT;
     }
     ConstValueUnion getValue() override {
-        return myInt;
+        return value;
     }
     ConstValue *operator-() override {
-        return new SkyInt(-myInt.iVal);
+        return new SkyInt(-value.iVal);
     }
     Value *convertToCode() override;
 
 private:
-    ConstValueUnion myInt{};
-};
-
-class SkyInt64 : public ConstValue {
-public:
-    explicit SkyInt64(long long v) {
-        myInt64.i64Val = v;
-    }
-    SkyVarType getType() override {
-        return SKY_INT_64;
-    }
-    ConstValueUnion getValue() override {
-        return myInt64;
-    }
-    ConstValue *operator-() override {
-        return new SkyInt64(-myInt64.i64Val);
-    }
-    Value *convertToCode() override;
-
-private:
-    ConstValueUnion myInt64{};
+    ConstValueUnion value{};
 };
 
 class SkyDouble: public ConstValue {
 public:
     explicit SkyDouble(double v) {
-        myDouble.dVal = v;
+        value.dVal = v;
     }
     SkyVarType getType() override {
         return SKY_DOUBLE;
     }
     ConstValueUnion getValue() override {
-        return myDouble;
+        return value;
     }
     ConstValue *operator-() override {
-        return new SkyDouble(-myDouble.dVal);
+        return new SkyDouble(-value.dVal);
     }
     Value *convertToCode() override;
 
 private:
-    ConstValueUnion myDouble{};
+    ConstValueUnion value{};
 };
 
 class SkyFloat: public ConstValue {
 public:
     explicit SkyFloat(float v) {
-        myFloat.fVal = v;
+        value.fVal = v;
     }
     SkyVarType getType() override {
         return SKY_FLOAT;
     }
     ConstValueUnion getValue() override {
-        return myFloat;
+        return value;
     }
     ConstValue *operator-() override {
-        return new SkyDouble(-myFloat.fVal);
+        return new SkyDouble(-value.fVal);
     }
     Value *convertToCode() override;
 
 private:
-    ConstValueUnion myFloat{};
+    ConstValueUnion value{};
 };
 
 class SkyChar: public ConstValue {
 public:
     explicit SkyChar(char v) {
-        myChar.cVal = v;
+        value.cVal = v;
     }
     SkyVarType getType() override {
         return SKY_CHAR;
     }
     ConstValueUnion getValue() override {
-        return myChar;
+        return value;
     }
     ConstValue *operator-() override {
-        return new SkyDouble(-myChar.cVal);
+        return new SkyDouble(-value.cVal);
     }
     Value *convertToCode() override;
 
 private:
-    ConstValueUnion myChar{};
+    ConstValueUnion value{};
 };
 
 class SkyCharPointer: public ConstValue {
 public:
     explicit SkyCharPointer(const string& v) {
-        myCharPointer.sVal = (char*)v.c_str();
+        value.sVal = (char*)v.c_str();
     }
     SkyVarType getType() override {
         return SKY_CHAR_POINTER;
     }
     ConstValueUnion getValue() override {
-        return myCharPointer;
+        return value;
     }
     Value *convertToCode() override;
 
 private:
-    ConstValueUnion myCharPointer{};
+    ConstValueUnion value{};
 };
 
 class SkyBool: public ConstValue {
 public:
     explicit SkyBool(bool v) {
-        myBool.bVal = v;
+        value.bVal = v;
     }
     SkyVarType getType() override {
         return SKY_BOOL;
     }
     ConstValueUnion getValue() override {
-        return myBool;
+        return value;
     }
     ConstValue *operator-() override {
-        return new SkyBool(!myBool.bVal);
+        return new SkyBool(!value.bVal);
     }
     Value *convertToCode() override;
 
 private:
-    ConstValueUnion myBool{};
+    ConstValueUnion value{};
 };
 
 class SkyArrayType: public StatNode {
 public:
-    SkyArrayType(SkyType *type, int size): myType(type), size(size) { }
+    SkyArrayType(SkyVarType *type, int size): type(type), size(size) { }
     Value *convertToCode() override;
 
 private:
-    SkyType *myType;
+    SkyVarType *type;
     int size;
 };
 
+// all the types in Sky
+// including:   SKY_ARRAY : array type   example: int[10]
+//              SKY_VAR : simple types (SKY_INT, SKY_FLOAT, ...)
+//              SKY_VOID : now is only used in the function return type, which means the function has no return value
 class SkyType: public StatNode {
 public:
-    explicit SkyType(SkyArrayType *arrayType): arrayType(arrayType), myType(SKY_ARRAY) { }
-    explicit SkyType(SkyVarType *varType): varType(varType), myType(SKY_VAR) { }
-    SkyType(): myType(SKY_VOID) { }
+    explicit SkyType(SkyArrayType *arrayType): arrayType(arrayType), type(SKY_ARRAY) { }
+    explicit SkyType(SkyVarType *varType): varType(varType), type(SKY_VAR) { }
+    SkyType(): type(SKY_VOID) { }
     Value *convertToCode() override;
     Type* toLLVMType();
 //    Constant* initValue(ConstValue *v = nullptr);
 
     SkyArrayType *arrayType{};
     SkyVarType *varType{};
-    SkyTypes myType;
-private:
+    SkyTypes type;
 };
 
+// In human terms, it can be seen as the name of something(variable, function, class, const, ...)
 class Identifier: public ExprNode {
 public:
-    explicit Identifier(string name): myIdName(std::move(name)) { }
+    explicit Identifier(string name): name(std::move(name)) { }
     Value *convertToCode() override;
-    string myIdName;
+    string name;
 };
 
 class IdentifierPointer: public ExprNode {
 public:
-    explicit IdentifierPointer(string name): myIdName(std::move(name)) { }
-    string myIdName;
+    explicit IdentifierPointer(string name): name(std::move(name)) { }
+    string name;
 };
 
 class VarDec: public StatNode {
 public:
-    VarDec(Identifier *id, SkyType *type, ExprNode* expr): myId(id), myType(type), expr(expr), global(false) { }
+    VarDec(Identifier *id, SkyType *type, ExprNode* expr): id(id), type(type), expr(expr), global(false) { }
     Value *convertToCode() override;
     bool isGlobal() const {
         return this->global;
@@ -319,15 +315,15 @@ public:
     void setGlobal() {
         this->global = true;
     }
-    Identifier *myId;
-    SkyType *myType;    // if myType == nullptr, need Type Inference
-    ExprNode *expr;     // when myType == nullptr, calculate this expr to get the type
+    Identifier *id;
+    SkyType *type;    // if type == nullptr, need Type Inference
+    ExprNode *expr;     // when type == nullptr, calculate this expr to get the type
     bool global;
 };
 
 class ConstDec: public StatNode {
 public:
-    ConstDec(Identifier *id, ConstValue *cv): myId(id), myValue(cv), global(false) { }
+    ConstDec(Identifier *id, ConstValue *cv): id(id), value(cv), global(false) { }
     Value *convertToCode() override;
     bool isGlobal() const {
         return this->global;
@@ -337,34 +333,33 @@ public:
     }
 
 private:
-    Identifier *myId;
-    ConstValue *myValue;
-    SkyType *myType{};
+    Identifier *id;
+    ConstValue *value;
     bool global;
 };
 
 class TypeDec: public StatNode {
 public:
-    TypeDec(Identifier *id, SkyType *type): myId(id), myType(type) { }
+    TypeDec(Identifier *id, SkyType *type): id(id), type(type) { }
 
 private:
-    Identifier *myId;
-    SkyType *myType;
+    Identifier *id;
+    SkyType *type;
 };
 
 class FuncDec: public StatNode {
 public:
-    FuncDec(Identifier *name, VarDecList *paraList, SkyType *returnType, CompoundStat *funcBody): myId(name), myParaList(paraList), myRetType(returnType), myBody(funcBody) { }
-    FuncDec(Identifier *name, VarDecList *paraList, CompoundStat *funcBody): myId(name), myParaList(paraList), myBody(funcBody) {
-        myRetType = new SkyType();
+    FuncDec(Identifier *name, VarDecList *paraList, SkyType *returnType, CompoundStat *funcBody): id(name), paraList(paraList), retType(returnType), body(funcBody) { }
+    FuncDec(Identifier *name, VarDecList *paraList, CompoundStat *funcBody): id(name), paraList(paraList), body(funcBody) {
+        retType = new SkyType();
     }
     Value *convertToCode() override;
 
 private:
-    Identifier *myId;
-    VarDecList *myParaList;
-    SkyType *myRetType;
-    CompoundStat *myBody;
+    Identifier *id;
+    VarDecList *paraList;
+    SkyType *retType;
+    CompoundStat *body;
 };
 
 class ClassBody: public StatNode {
@@ -497,6 +492,9 @@ private:
     bool isPointer;
 };
 
+// GlobalArea can only do some definition
+// including const, variable, function and class
+// especially, function and class can only be defined in the GlobalArea
 class GlobalArea: public StatNode {
 public:
     GlobalArea() = default;

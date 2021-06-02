@@ -47,8 +47,8 @@ Value * ConstDec::convertToCode() {
 
 Value * FuncDec::convertToCode() {
     vector<Type*> args;
-    for (auto &it: *myParaList) {
-        args.push_back(it->myType->toLLVMType());
+    for (auto &it: *paraList) {
+        args.push_back(it->type->toLLVMType());
     }
     return nullptr;
 }

@@ -27,7 +27,7 @@ extern int yylex();
     VarDecList *varDecList;
     SkyTypes *skyTypes;
     SkyVarType *skyVarType;
-    SkyArray *skyArray;
+    SkyArrayType *skyArrayType;
     FuncDec *funcDec;
     CompoundStat *compoundStat;
     StatList *statList;
@@ -52,7 +52,7 @@ extern int yylex();
 %type<varDecList>                       var_declaration var_list
 %type<skyTypes>                         type_declaration
 %type<skyVarType>                       var_type
-%type<skyArray>                         array_type_declaration
+%type<skyArrayType>                     array_type_declaration
 %type<funcDec>                          func_declaration main_func class_init class_del
 %type<compoundStat>                     compound_statement
 %type<statList>                         statement_list
@@ -145,7 +145,7 @@ type_declaration
     ;
 
 array_type_declaration
-    : var_type '[' INTEGER ']'                              { $$ = new SkyArray($1, $3); }
+    : var_type '[' INTEGER ']'                              { $$ = new SkyArrayType($1, $3); }
     ;
 
 var_type
@@ -243,7 +243,7 @@ expr_shift
     ;
 
 term
-    : term '*' factor                                    { $$ = new BinaryExpr($1, BinaryOperators::OP_MUL, $3); }
+    : term '*' factor                                       { $$ = new BinaryExpr($1, BinaryOperators::OP_MUL, $3); }
     | term OP_DIV factor                                    { $$ = new BinaryExpr($1, BinaryOperators::OP_DIV, $3); }
     | term OP_MOD factor                                    { $$ = new BinaryExpr($1, BinaryOperators::OP_MOD, $3); }
     | factor                                                { $$ = $1; }

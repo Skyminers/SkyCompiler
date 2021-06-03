@@ -43,7 +43,33 @@ Value * ConstDec::convertToCode() {
     }
 }
 
+Value *SkyInt::convertToCode() {
+    return builder.getInt32(value.iVal);
+}
 
+Value *SkyDouble::convertToCode() {
+    return ConstantFP::get(builder.getDoubleTy(), value.dVal);
+}
+
+Value *SkyFloat::convertToCode() {
+    return ConstantFP::get(builder.getFloatTy(), value.iVal);
+}
+
+Value *SkyChar::convertToCode() {
+    return builder.getInt8(value.cVal);
+}
+
+Value *SkyCharPointer::convertToCode() {
+    char *p = value.sVal;
+    int siz = (int)strlen(p);
+    vector<Constant *> vec;
+    vec.resize(siz);
+    for (int i = 0; i < siz; ++i) {
+        vec.push_back(builder.getInt8(*(p + i)));
+    }
+    auto arrType = ArrayType::get(builder.getInt8Ty(), siz);
+    return ConstantArray::get(arrType, vec);
+}
 
 Constant* ConstValue::create() {
     switch(getType()) {
@@ -57,6 +83,7 @@ Constant* ConstValue::create() {
             char *p = getValue().sVal;
             int siz = (int)strlen(p);
             vector<Constant *> vec;
+            vec.resize(siz);
             for (int i = 0; i < siz; ++i) {
                 vec.push_back(builder.getInt8(*(p + i)));
             }

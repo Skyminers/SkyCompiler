@@ -155,6 +155,7 @@ public:
     ConstValue *operator-() override {
         return new SkyInt(-value.iVal);
     }
+
     Value *convertToCode() override;
 
 private:

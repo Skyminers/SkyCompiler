@@ -84,7 +84,7 @@ extern int yylex();
         TYPE_FLOAT TYPE_FLOAT_POINTER TYPE_DOUBLE TYPE_DOUBLE_POINTER
         TYPE_BOOL TYPE_BOOL_POINTER
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
-        OP_PLUS OP_MINUS OP_DIV OP_MOD OP_RIGHT OP_LEFT OP_INC OP_DEC OP_PTR OP_AND OP_OR OP_NOT
+        OP_PLUS OP_MINUS OP_DIV OP_MOD OP_RIGHT OP_LEFT OP_PTR OP_AND OP_OR OP_NOT
         OP_LT OP_LE OP_GT OP_GE OP_EQ OP_NE
         LF
 
@@ -168,7 +168,7 @@ func_declaration
     ;
 
 main_func
-    : FUNCTION MAIN '(' var_list ')' OP_PTR var_type compound_statement     { $$ = new FuncDec(new Identifier(MAIN), $4, $7, $8); }
+    : FUNCTION MAIN '(' ')' OP_PTR TYPE_INT compound_statement     { $$ = new FuncDec(new Identifier(MAIN), nullptr, new SkyVarType(SkyVarType::SKY_INT), $7); }
     ;
 
 statement_list
@@ -261,10 +261,12 @@ number
     | name '(' expression_list ')'                          { $$ = new FuncCall($1, $3); }
     | const_value                                           { $$ = $1; }
     | name                                                  { $$ = $1; }
-    | '*' name '[' expression ']'                           { $$ = new ArrayRef($2, $4, true); }
-    | '*' name '.' name                                     { $$ = new ClassRef($2, $4, true); }
-    | '*' name '(' expression_list ')'                      { $$ = new FuncCall($2, $4, true); }
-    | '*' name                                              { $$=  new IdentifierPointer($2); }
+    | '*' name '[' expression ']'                           { $$ = new PointerNode(new ArrayRef($2, $4)); }
+    | '*' name '.' name                                     { $$ = new PointerNode(new ClassRef($2, $4)); }
+    | '*' name '(' expression_list ')'                      { $$ = new PointerNode(new FuncCall($2, $4)); }
+    | '*' name                                              { $$=  new PointerNode($2); }
+    | '*' '(' expression ')'                                { $$ = new PointerNode($3); }
+    | '&' name                                              { $$ = new ReferenceNode($2); }
     ;
 
 expression_list
@@ -277,9 +279,10 @@ assign_statement
     : name '=' expression                                   { $$ = new AssignStat($1, $3); }
     | name '[' expression ']' '=' expression                { $$ = new AssignStat($1, $3, $6); }
     | name '.' name '=' expression                          { $$ = new AssignStat($1, $3, $5); }
-    | '*' name '=' expression                               { $$ = new AssignStat($2, $4, true); }
-    | '*' name '[' expression ']' '=' expression            { $$ = new AssignStat($2, $4, $7, true); }
-    | '*' name '.' name '=' expression                      { $$ = new AssignStat($2, $4, $6, true); }
+    | '*' name '=' expression                               { $$ = new AssignStat(new PointerNode($2), $4); }
+    | '*' name '[' expression ']' '=' expression            { $$ = new AssignStat(new PointerNode(new ArrayRef($2, $4)), $7); }
+    | '*' name '.' name '=' expression                      { $$ = new AssignStat(new PointerNode(new ClassRef($2, $4)), $6); }
+    | '*' '(' expression ')' '=' expression                 { $$ = new AssignStat(new PointerNode($3), $6); }
     ;
 
 name

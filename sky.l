@@ -2,7 +2,7 @@
 
 #include<stdio.h>
 #include<string>
-#include "sky.y.h"
+#include "sky.tab.c"
 using namespace std;
 
 %}
@@ -71,10 +71,9 @@ using namespace std;
 "%"                           {return OP_MOD;} 
 ">>"                          {return OP_RIGHT;}
 "<<"                          {return OP_LEFT;}
-"++"                          {return OP_INC;}      /*self-increase*/
-"--"                          {return OP_DEC;}      /*self-decrease*/
 "->"                          {return OP_PTR;}      /*pointer or return type*/ 
 "&&"                          {return OP_AND;}
+"&"                           {return('&');}
 "||"                          {return OP_OR;}
 "<"                           {return OP_LT;}       /*less than*/ 
 "<="                          {return OP_LE;}

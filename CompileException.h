@@ -8,7 +8,7 @@
 #include <string>
 #include <utility>
 
-class CompileException {
+class CompileException : std::exception{
 public:
     explicit CompileException(std::string msg): errorMsg(std::move(msg)){}
     std::string getErrorMsg(){

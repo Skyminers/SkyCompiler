@@ -24,6 +24,7 @@ class VarDec;
 class GlobalArea;
 class ExprNode;
 class ClassDec;
+class PointerNode;
 
 typedef vector<Identifier*> IdentifierList;
 typedef vector<StatNode*>   StatList;
@@ -87,10 +88,8 @@ enum BinaryOperators {
     OP_OR,
     OP_XOR,
     OP_MOD,
-    OP_LEFT,
-    OP_RIGHT,
-    OP_INC,
-    OP_DEC,
+    OP_LEFT,  // "<<"
+    OP_RIGHT, // ">>"
     OP_PTR
 };
 
@@ -98,12 +97,6 @@ enum TypeOfJump {
     BREAK,
     CONTINUE,
     RETURN
-};
-
-enum AssignType {
-    ID_ASSIGN,
-    ARRAY_ASSIGN,
-    CLASS_ASSIGN
 };
 
 class ASTNode{
@@ -303,12 +296,6 @@ public:
     string name;
 };
 
-class IdentifierPointer: public ExprNode {
-public:
-    explicit IdentifierPointer(string name): name(std::move(name)) { }
-    string name;
-};
-
 class VarDec: public StatNode {
 public:
     VarDec(Identifier *id, SkyType *type, ExprNode* expr): id(id), type(type), expr(expr), global(false) { }
@@ -386,15 +373,10 @@ private:
 
 class AssignStat: public StatNode {
 public:
-    AssignStat(Identifier *id, ExprNode *expr, bool isPointer = false): targetId(id), expr(expr), type(ID_ASSIGN), isPointer(isPointer) { }
-    AssignStat(Identifier *id, ExprNode *subInd, ExprNode *expr, bool isPointer = false): targetId(id), subInd(subInd), expr(expr), type(ARRAY_ASSIGN), isPointer(isPointer) { }
-    AssignStat(Identifier *id, Identifier *cid, ExprNode *expr, bool isPointer = false): targetId(id), childId(cid), expr(expr), type(CLASS_ASSIGN), isPointer(isPointer) { }
+    AssignStat(ExprNode *lexpr, ExprNode *rexpr): left_expr(lexpr), right_expr(rexpr) { }
 
 private:
-    Identifier *targetId, *childId{};
-    ExprNode *expr, *subInd{};
-    AssignType type;
-    bool isPointer;
+    ExprNode *left_expr, *right_expr;
 };
 
 class PrintStat: public StatNode {
@@ -469,31 +451,39 @@ private:
 
 class ArrayRef: public ExprNode {
 public:
-    ArrayRef(Identifier *id, ExprNode *subInd, bool isPointer = false): id(id), subInd(subInd), isPointer(isPointer) { }
+    ArrayRef(Identifier *id, ExprNode *subInd): id(id), subInd(subInd) { }
 
 private:
     Identifier *id;
     ExprNode *subInd;
-    bool isPointer;
 };
 
 class ClassRef: public ExprNode {
 public:
-    ClassRef(Identifier *id, Identifier *childId, bool isPointer = false): id(id), childId(childId), isPointer(isPointer) { }
+    ClassRef(Identifier *id, Identifier *childId): id(id), childId(childId) { }
 
 private:
     Identifier *id, *childId;
-    bool isPointer;
 };
 
 class FuncCall: public ExprNode, StatNode {
 public:
-    FuncCall(Identifier *id, ExprList *args, bool isPointer = false): id(id), args(args), isPointer(isPointer) { }
+    FuncCall(Identifier *id, ExprList *args): id(id), args(args) { }
 
 private:
     Identifier *id;
     ExprList *args;
-    bool isPointer;
+};
+
+class PointerNode: public ExprNode {
+public:
+    PointerNode(ExprNode *expr): expr(expr) { }
+    ExprNode *expr;
+};
+
+class ReferenceNode: public ExprNode {
+    ReferenceNode(Identifier *id): id(id) { }
+    Identifier *id;
 };
 
 // GlobalArea can only do some definition

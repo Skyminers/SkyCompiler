@@ -29,6 +29,10 @@ static IRBuilder<> builder(context);
 class ConvertEngine{
 private:
     Module *module;
+public:
+    Module *getModule() const;
+
+private:
     uint layoutID;
     Function *scan, *print;
 public:

@@ -140,10 +140,11 @@ private:
 
 class ConstValue: public ExprNode{
 public:
-    Value *convertToCode() override;
     virtual SkyVarType getType() = 0;
     virtual ConstValueUnion getValue() = 0;
     virtual ConstValue *operator-() = 0;
+
+    Value *convertToCode() override;
 };
 
 class SkyInt : public ConstValue {
@@ -265,11 +266,10 @@ private:
 
 class SkyArrayType: public StatNode {
 public:
-    SkyArrayType(SkyVarType *type, int size): type(type), size(size) { }
+    SkyArrayType(SkyType *type, int size): type(type), size(size) { }
     Value *convertToCode() override;
 
-private:
-    SkyVarType *type;
+    SkyType *type;
     int size;
 };
 
@@ -282,7 +282,9 @@ public:
     explicit SkyType(SkyArrayType *arrayType): arrayType(arrayType), type(SKY_ARRAY) { }
     explicit SkyType(SkyVarType *varType): varType(varType), type(SKY_VAR) { }
     SkyType(): type(SKY_VOID) { }
+
     Value *convertToCode() override;
+
     Type* toLLVMType();
 //    Constant* initValue(ConstValue *v = nullptr);
 
@@ -295,7 +297,9 @@ public:
 class Identifier: public ExprNode {
 public:
     explicit Identifier(string name): name(std::move(name)) { }
+
     Value *convertToCode() override;
+
     string name;
 };
 

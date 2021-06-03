@@ -54,6 +54,10 @@ Function *ConvertEngine::getMain() const {
     return main;
 }
 
+Module *ConvertEngine::getModule() const {
+    return module;
+}
+
 
 // Unit test
 int main() {

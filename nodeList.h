@@ -138,6 +138,7 @@ public:
     virtual ConstValue *operator-() = 0;
 
     Value *convertToCode() override;
+    Constant* create();
 };
 
 class SkyInt : public ConstValue {
@@ -223,7 +224,8 @@ private:
 class SkyCharPointer: public ConstValue {
 public:
     explicit SkyCharPointer(const string& v) {
-        value.sVal = (char*)v.c_str();
+        value.sVal = new char[v.size() + 1];
+        memcpy(value.sVal, v.c_str(), sizeof(char) * v.size());
     }
     SkyVarType getType() override {
         return SKY_CHAR_POINTER;
@@ -314,7 +316,9 @@ public:
 
 class ConstDec: public StatNode {
 public:
-    ConstDec(Identifier *id, ConstValue *cv): id(id), value(cv), global(false) { }
+    ConstDec(Identifier *id, ConstValue *cv): id(id), value(cv), global(false) {
+        type = new SkyType(new SkyVarType(value->getType()));
+    }
     Value *convertToCode() override;
     bool isGlobal() const {
         return this->global;
@@ -323,9 +327,9 @@ public:
         this->global = true;
     }
 
-private:
     Identifier *id;
     ConstValue *value;
+    SkyType *type;
     bool global;
 };
 

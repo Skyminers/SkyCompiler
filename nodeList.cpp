@@ -4,6 +4,7 @@
 
 #include "nodeList.h"
 #include "convertEngine.h"
+#include "CompileException.h"
 
 extern ConvertEngine engine;
 
@@ -13,15 +14,8 @@ llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction, llvm::Stri
 }
 
 Value * Program::convertToCode() {
-    engine.createMainFunction();
-    auto mainFunc = engine.getMain();
-    auto mainBlock = BasicBlock::Create(context, "main", mainFunc);
-    engine.enterFunction(mainFunc);
-    builder.SetInsertPoint(mainBlock);
     this->globalArea->convertToCode();
-    this->mainFunc->convertToCode();
-    builder.CreateRet(builder.getInt32(1));
-    return nullptr;
+    return this->mainFunc->convertToCode();
 }
 
 Value * GlobalArea::convertToCode() {
@@ -42,12 +36,16 @@ Value * GlobalArea::convertToCode() {
 
 Value * ConstDec::convertToCode() {
     if ( isGlobal() ) {
-        return new GlobalVariable(*engine.getModule(), value->getType(), true, GlobalValue::ExternalLinkage, value->getValue())
+        return new GlobalVariable(*engine.getModule(), type->toLLVMType(), true, GlobalValue::ExternalLinkage, value->create(), id->name);
+    } else {
+        auto mem = CreateEntryBlockAlloca(engine.nowFunction(), id->name, type->toLLVMType());
+        return builder.CreateStore(value->convertToCode(), mem);
     }
-    return nullptr;
 }
 
-Value *ConstValue::convertToCode() {
+
+
+Constant* ConstValue::create() {
     switch(getType()) {
         case SKY_INT:
             return builder.getInt32(getValue().iVal);
@@ -55,7 +53,22 @@ Value *ConstValue::convertToCode() {
             return builder.getInt1(getValue().bVal);
         case SKY_CHAR:
             return builder.getInt8(getValue().cVal);
-        case SKY_CHAR_POINTER:
+        case SKY_CHAR_POINTER: {
+            char *p = getValue().sVal;
+            int siz = (int)strlen(p);
+            vector<Constant *> vec;
+            for (int i = 0; i < siz; ++i) {
+                vec.push_back(builder.getInt8(*(p + i)));
+            }
+            auto arrType = ArrayType::get(builder.getInt8Ty(), siz);
+            return ConstantArray::get(arrType, vec);
+        }
+        case SKY_FLOAT:
+            return ConstantFP::get(builder.getFloatTy(), getValue().fVal);
+        case SKY_DOUBLE:
+            return ConstantFP::get(builder.getDoubleTy(), getValue().dVal);
+        default:
+            throw CompileException("fuck");
 
     }
     return nullptr;
@@ -67,7 +80,7 @@ Value * FuncDec::convertToCode() {
         args.push_back(it->type->toLLVMType());
     }
     auto funcType = FunctionType::get(retType->toLLVMType(), args, false);
-    auto func = Function::Create(funcType, GlobalValue::ExternalLinkage, id->getName(), engine.getModule());
+    auto func = Function::Create(funcType, GlobalValue::ExternalLinkage, id->name, engine.getModule());
     engine.enterFunction(func);
     BasicBlock *funcBlock = BasicBlock::Create(context, "function begin", func, nullptr);
     builder.SetInsertPoint(funcBlock);
@@ -126,8 +139,8 @@ Type * SkyType::toLLVMType() {
                 return llvm::Type::getInt1PtrTy(context);
         }
     } else if (type == SKY_ARRAY) {
-        ArrayType::get(arrayType->type->toLLVMType(), arrayType->size);
-    }
+        return ArrayType::get(arrayType->type->toLLVMType(), arrayType->size);
+    } else return llvm::Type::getVoidTy(context);
 }
 
 Value *SkyType::convertToCode() {
@@ -135,5 +148,6 @@ Value *SkyType::convertToCode() {
 }
 
 Value *Identifier::convertToCode() {
-    return new LoadInst(engine.findVarByName(name), "tmp", false, builder.GetInsertBlock());
+    auto value = engine.findVarByName(name);
+    return new LoadInst(value->getType(), value, "tmp", false, builder.GetInsertBlock());
 }

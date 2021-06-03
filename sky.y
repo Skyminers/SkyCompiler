@@ -25,7 +25,7 @@ extern int yylex();
     ConstValue *constValue;
     VarDec *varDec;
     VarDecList *varDecList;
-    SkyTypes *skyTypes;
+    SkyType *skyType;
     SkyVarType *skyVarType;
     SkyArrayType *skyArrayType;
     FuncDec *funcDec;
@@ -50,7 +50,7 @@ extern int yylex();
 %type<constValue>                       const_value
 %type<varDec>                           var_expr
 %type<varDecList>                       var_declaration var_list
-%type<skyTypes>                         type_declaration
+%type<skyType>                          type_declaration
 %type<skyVarType>                       var_type
 %type<skyArrayType>                     array_type_declaration
 %type<funcDec>                          func_declaration main_func class_init class_del
@@ -144,7 +144,7 @@ type_declaration
     ;
 
 array_type_declaration
-    : var_type '[' INTEGER ']'                              { $$ = new SkyArrayType($1, $3); }
+    : var_type '[' INTEGER ']'                              { $$ = new SkyArrayType(new SkyType($1), $3); }
     ;
 
 var_type

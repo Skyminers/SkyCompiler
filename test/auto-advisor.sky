@@ -1,7 +1,147 @@
-//a little complicated. Do it tomorrow
-var
+let name_len = 100
+let pre_len = 1000
+var name: char[name_len], pre: char[pre_len], grade: char, credit: int
+var sum_attempt: int, sum_complete: int, sum_remain: int, sum_grade: int
+var num_complete: int, num_remain: int
+var names_complete: char[100 * name_len], names_remain: char[100 * name_len]
+var pres: char[100 * pre_len]
+var len: int, ch: char
+var pre_name: char[name_len]
+var tmp_len: int, top: int, orr: int, andd: int
+var stack: bool[5]
+var i: int, j: int, k: int
+var ii: int, jj: int, num: int
+var flag: bool
+var GPA: double
+
+func check(st: int) -> bool {
+    if (pres[st] == '\0') {
+        return true
+    }
+    tmp_len = 0
+    top = 0
+    orr = 0
+    andd = 0
+    for i in [0, pre_len, 1] {
+        ch = pres[st + i]
+        if (ch == ',' || ch == ';' || ch == '\0') {
+            pre_name[tmp_len] = '\0'
+            top = top + 1
+            stack[top] = false
+            for j in [0, num_complete, 1] {
+                flag = true
+                for k in [0, tmp_len + 1, 1] {
+                    if (names_complete[j * name_len + k] != pre_name[k]) {
+                        flag = false
+                        break
+                    }
+                }
+                if (flag) {
+                    stack[top] = true
+                    break
+                }
+            }
+            if (andd > 0) {
+                stack[top - 1] = stack[top - 1] && stack[top]
+                top = top - 1
+                andd = 0
+            }
+            if (orr > 1) {
+                stack[top - 1] = stack[top - 1] || stack[top]
+                top = top - 1
+                orr = orr - 1
+            }
+            if (ch == ',') {
+                andd = andd + 1
+            }
+            if (ch == ';') {
+                orr = orr + 1
+            }
+            if (ch == '\0') {
+                if (orr > 0) {
+                    stack[top - 1] = stack[top - 1] || stack[top]
+                    top = top - 1
+                    orr = orr - 1
+                }
+                break
+            }
+        } else {
+            pre_name[tmp_len] = ch
+            tmp_len = tmp_len + 1
+        }
+    }
+    return stack[1]
+}
 
 func main() -> int {
-
+    while (true) {
+        scanf(" %[^|]|", name);
+        credit = -1
+        scanf("%d|", &credit)
+        if (credit == -1) { break }
+        len = 0
+        scanf("%c", &ch)
+        while (ch != '|') {
+            pre[len] = ch
+            len = len + 1
+            scanf("%c", &ch)
+        }
+        pre[len] = '\0'
+        scanf("%c", &ch)
+        grade = -1
+        if (ch == 'A') { grade = 4 }
+        if (ch == 'B') { grade = 3 }
+        if (ch == 'C') { grade = 2 }
+        if (ch == 'D') { grade = 1 }
+        if (ch == 'F') { grade = 0 }
+        if (grade >= 0) {
+            sum_grade = sum_grade + grade * credit
+            sum_attempt = sum_attempt + credit
+        }
+        if (grade > 0) {
+            for i in [0, name_len, 1] {
+                names_complete[num_complete * name_len + i] = name[i]
+                if (name[i] == '\0') { break }
+            }
+            sum_complete = sum_complete + credit
+            num_complete = num_complete + 1
+        } else {
+            for i in [0, pre_len, 1] {
+                pres[num_remain * pre_len + i] = pre[i]
+                if (pre[i] == '\0') { break }
+            }
+            for i in [0, name_len, 1] {
+                names_remain[num_remain * name_len + i] = name[i]
+                if (name[i] == '\0') { break }
+            }
+            sum_remain = sum_remain + credit
+            num_remain = num_remain + 1
+        }
+    }
+    if (sum_attempt == 0) {
+        GPA = 0.0
+    } else {
+        GPA = sum_grade * 1.0 / sum_attempt
+    }
+    printf("GPA: %.1f\n", GPA)
+    printf("Hours Attempted: %d\n", sum_attempt)
+    printf("Hours Completed: %d\n", sum_complete)
+    printf("Credits Remaining: %d\n", sum_remain)
+    printf("\nPossible Courses to Take Next\n")
+    num = 0
+    for ii in [0, num_remain, 1] {
+        if (check(ii * pre_len)) {
+            num = num + 1
+            printf("  ")
+            for jj in [0, name_len, 1] {
+                if (names_remain[ii * name_len + jj] == '\0') { break }
+                printf("%c", names_remain[ii * name_len + jj])
+            }
+            printf("\n")
+        }
+    }
+    if (num === 0) {
+        printf("  None - Congratulations!")
+    }
     return 0
 }

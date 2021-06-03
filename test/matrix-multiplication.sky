@@ -1,17 +1,18 @@
 var m_a: int, n_a: int
 var m_b: int, n_b: int
 var a: int[410], b: int[410]
+var i: int, j: int, k: int, tmp: int
 
 func main() -> int {
     scanf("%d%d", &m_a, &n_a)
-    for i in [0, m_a - 1, 1] {
-        for j in [0, n_a - 1, 1] {
+    for i in [0, m_a, 1] {
+        for j in [0, n_a, 1] {
             scanf("%d", &a[i * n_a + j])
         }
     }
     scanf("%d%d", &m_b, &n_b)
-    for i in [0, m_b - 1, 1] {
-        for j in [0, n_b - 1, 1] {
+    for i in [0, m_b, 1] {
+        for j in [0, n_b, 1] {
             scanf("%d", &b[i * n_b + j])
         }
     }
@@ -19,10 +20,10 @@ func main() -> int {
         printf("Incompatible Dimensions\n")
         return 0
     }
-    for i in [0, m_a - 1, 1] {
-        for j in [0, n_b - 1, 1] {
-            var tmp = 0
-            for k in [0, n_a - 1, 1] {
+    for i in [0, m_a, 1] {
+        for j in [0, n_b, 1] {
+            tmp = 0
+            for k in [0, n_a, 1] {
                 tmp = tmp + a[i * n_a + k] * b[k * n_b + j]
             }
             printf("%10d", tmp)

@@ -1,7 +1,7 @@
 var m_a: int, n_a: int
 var m_b: int, n_b: int
 var a: int[410], b: int[410]
-var i: int, j: int, k: int, tmp: int
+var i: int, j: int, k: int
 
 func main() -> int {
     scanf("%d%d", &m_a, &n_a)
@@ -20,6 +20,7 @@ func main() -> int {
         printf("Incompatible Dimensions\n")
         return 0
     }
+    var tmp: int
     for i in [0, m_a, 1] {
         for j in [0, n_b, 1] {
             tmp = 0

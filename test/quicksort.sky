@@ -1,8 +1,8 @@
 var a: int[10010]
 var n: int
-var i: int, j: int, mid: int, tmp: int
 
 func qsort(l : int, r : int) {
+    var i: int, j: int, mid: int, tmp: int
     i = l
     j = r
     mid = a[(l + r) >> 1]

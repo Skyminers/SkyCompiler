@@ -141,6 +141,8 @@ public:
     Constant* create();
 };
 
+// Node for const int value
+// The int value is saved in value.iVal
 class SkyInt : public ConstValue {
 public:
     explicit SkyInt(int v) {
@@ -162,6 +164,8 @@ private:
     ConstValueUnion value{};
 };
 
+// Node for const double value
+// The double value is saved in value.dVal
 class SkyDouble: public ConstValue {
 public:
     explicit SkyDouble(double v) {
@@ -182,6 +186,8 @@ private:
     ConstValueUnion value{};
 };
 
+// Node for const float value
+// The float value is saved in value.fVal
 class SkyFloat: public ConstValue {
 public:
     explicit SkyFloat(float v) {
@@ -202,6 +208,8 @@ private:
     ConstValueUnion value{};
 };
 
+// Node for const char value
+// The char value is saved in value.cVal
 class SkyChar: public ConstValue {
 public:
     explicit SkyChar(char v) {
@@ -222,6 +230,9 @@ private:
     ConstValueUnion value{};
 };
 
+// Node for const char* value
+// The char* value is saved in value.sVal
+// Actually the value.sVal points to a string
 class SkyCharPointer: public ConstValue {
 public:
     explicit SkyCharPointer(const string& v) {
@@ -240,6 +251,8 @@ private:
     ConstValueUnion value{};
 };
 
+// Node for const bool value
+// The bool value is saved in value.bVal
 class SkyBool: public ConstValue {
 public:
     explicit SkyBool(bool v) {
@@ -260,6 +273,9 @@ private:
     ConstValueUnion value{};
 };
 
+// Node for array type
+// Example:
+//      int[10]    =>   type = SKY_INT,  size = 10
 class SkyArrayType: public StatNode {
 public:
     SkyArrayType(SkyType *type, int size): type(type), size(size) { }
@@ -270,7 +286,7 @@ public:
 };
 
 // all the types in Sky
-// including:   SKY_ARRAY : array type   example: int[10]
+// including:   SKY_ARRAY : array type   Example: int[10]
 //              SKY_VAR : simple types (SKY_INT, SKY_FLOAT, ...)
 //              SKY_VOID : now is only used in the function return type, which means the function has no return value
 class SkyType: public StatNode {
@@ -300,6 +316,10 @@ public:
     string name;
 };
 
+// Node for variable declaration
+// Example:
+//      name = expression
+//      name : type
 class VarDec: public StatNode {
 public:
     VarDec(Identifier *id, SkyType *type, ExprNode* expr): id(id), type(type), expr(expr), global(false) { }
@@ -313,11 +333,15 @@ public:
     Value *convertToCode() override;
 
     Identifier *id;
-    SkyType *type;    // if type == nullptr, need Type Inference
+    SkyType *type;      // if type == nullptr, need Type Inference
     ExprNode *expr;     // when type == nullptr, calculate this expr to get the type
-    bool global;
+    bool global;        // whether is the global variable
 };
 
+// Node for const declaration
+// Example:
+//      name = value
+// The type of the value will be recognized in the parsing phase
 class ConstDec: public StatNode {
 public:
     ConstDec(Identifier *id, ConstValue *cv): id(id), value(cv), global(false) {
@@ -334,18 +358,13 @@ public:
     Identifier *id;
     ConstValue *value;
     SkyType *type;
-    bool global;
+    bool global;        // whether is the global const
 };
 
-class TypeDec: public StatNode {
-public:
-    TypeDec(Identifier *id, SkyType *type): id(id), type(type) { }
-
-private:
-    Identifier *id;
-    SkyType *type;
-};
-
+// Node for function declaration
+// Example:
+//      func func_name(paraList) compound_statement      (retType = SKY_VOID)
+//      func func_name(paraList) -> retType compound_statement
 class FuncDec: public StatNode {
 public:
     FuncDec(Identifier *name, VarDecList *paraList, SkyType *returnType, CompoundStat *funcBody): id(name), paraList(paraList), retType(returnType), body(funcBody) { }
@@ -361,24 +380,45 @@ private:
     CompoundStat *body;
 };
 
+// Node for class body
+// Class body must contain init and del function
+// Example:
+//      func __init__(paraList) -> retType compound_statement
+//      func __del__(paraList) -> retType compound_statement
+//      funcDecList
 class ClassBody: public StatNode {
 public:
-    ClassBody(FuncDec *init, FuncDec *del, FuncDecList *funcList): initClass(init), delClass(del), funcList(funcList) { }
+    ClassBody(FuncDec *init, FuncDec *del, FuncDecList *funcList): initFunc(init), delFunc(del), funcList(funcList) { }
 
 private:
-    FuncDec *initClass, *delClass;
+    FuncDec *initFunc, *delFunc;
     FuncDecList *funcList;
 };
 
+// Node for class declaration
+// Example:
+//      class class_name { class_body }
+//      class class_name : father { class_body }
 class ClassDec: public StatNode {
 public:
     ClassDec(Identifier *name, Identifier *father, ClassBody *body): name(name), father(father), body(body) { }
 
 private:
-    Identifier *name, *father; // father can be null
+    Identifier *name, *father; // father can be nullptr
     ClassBody *body;
 };
 
+// Node for assign statement
+// Example:
+//      left_expr = right_expr
+// Although left part is represented by an expression, the actual forms can only be as follows:
+//      name = right_expr
+//      name[expression] = right_expr
+//      name.name = right_expr
+//      *name = right_expr
+//      *name[expression] = right_expr
+//      *name.name = right_expr
+//      *(expression) = right_expr
 class AssignStat: public StatNode {
 public:
     AssignStat(ExprNode *lexpr, ExprNode *rexpr): left_expr(lexpr), right_expr(rexpr) { }
@@ -387,20 +427,10 @@ private:
     ExprNode *left_expr, *right_expr;
 };
 
-class PrintStat: public StatNode {
-public:
-    explicit PrintStat(ExprList *exprList): exprList(exprList) { }
-
-private:
-    ExprList *exprList;
-};
-
-class ScanStat: public StatNode {
-public:
-    explicit ScanStat(IdentifierList *nameList): nameList(nameList) { }
-    IdentifierList *nameList;
-};
-
+// Node for if statement
+// Example:
+//      if (condition) compound_statement
+//      if (condition) compound_statement else compound_statement
 class IfStat: public StatNode {
 public:
     IfStat(ExprNode *condExpr, CompoundStat *thenStat, CompoundStat *elseStat): condExpr(condExpr), thenStat(thenStat), elseStat(elseStat) { }
@@ -408,9 +438,13 @@ public:
 
 private:
     ExprNode *condExpr;
-    CompoundStat *thenStat, *elseStat;
+    CompoundStat *thenStat, *elseStat;  // elseStat can be nullptr
 };
 
+// Node for for-loop statement
+// Example:
+//      for forVar in [start, end, step] compound_statement
+// The interval should be [start, end)
 class ForStat: public StatNode {
 public:
     ForStat(Identifier *forVar, int start, int end, int step, CompoundStat* body):
@@ -422,6 +456,9 @@ private:
     Identifier *forVar;
 };
 
+// Node for while statement
+// Example:
+//      while (condition) compound_statement
 class WhileStat: public StatNode {
 public:
     WhileStat(ExprNode *cond, CompoundStat* body): cond(cond), body(body) { }
@@ -431,15 +468,24 @@ private:
     CompoundStat *body;
 };
 
+// Node for jump statement
+// Example:
+//      break
+//      continue
+//      return
+//      return expr
 class JumpStat: public StatNode {
 public:
     JumpStat(TypeOfJump type, ExprNode *retExpr): type(type), retExpr(retExpr) { }
 
 private:
-    ExprNode *retExpr;
-    TypeOfJump type;
+    ExprNode *retExpr;  // if the jump type is RETURN, it may has a return expression
+    TypeOfJump type;    // record the type of jump (BREAK, CONTINUE, RETURN, ...)
 };
 
+// Node for compound statement
+// Example:
+//      { statement_list }
 class CompoundStat: public StatNode {
 public:
     explicit CompoundStat(StatList *statList): statList(statList) { }
@@ -448,6 +494,10 @@ private:
     StatList *statList;
 };
 
+// Node for binary expression
+// Example:
+//      leftExpr op rightExpr
+// The priority is solved in the parsing phase, so just do the operation directly
 class BinaryExpr: public ExprNode {
 public:
     BinaryExpr(ExprNode *left, BinaryOperators op, ExprNode *right): left(left), op(op), right(right) { }
@@ -457,6 +507,10 @@ private:
     BinaryOperators op;
 };
 
+// Node for array element reference
+// Example:
+//      arrName[index]
+// index is saved as an expression(ExprNode)
 class ArrayRef: public ExprNode {
 public:
     ArrayRef(Identifier *id, ExprNode *subInd): id(id), subInd(subInd) { }
@@ -466,29 +520,45 @@ private:
     ExprNode *subInd;
 };
 
+// Node for class member reference
+// Example:
+//      className.classMemberName
 class ClassRef: public ExprNode {
 public:
     ClassRef(Identifier *id, Identifier *childId): id(id), childId(childId) { }
 
 private:
-    Identifier *id, *childId;
+    Identifier *id, *childId;   // id: className,  childId: classMemberName
 };
 
+// Node for function call
+// It can be an expression or a statement, so it is inherited from both ExprNode and StatNode
 class FuncCall: public ExprNode, StatNode {
 public:
     FuncCall(Identifier *id, ExprList *args): id(id), args(args) { }
 
 private:
-    Identifier *id;
-    ExprList *args;
+    Identifier *id;     // the function name
+    ExprList *args;     // the arguments of the function
 };
 
+// Node for Pointer
+// Example:
+//      *(a+2)
+//      *a
+//      *a[10]
+//      *func(1,2)
+//      *a.b
+// a+2, a, a[10], func(1,2), a.b above are all saved as an expression(ExprNode)
+// and the expression value should be calculated first, then use the '*'
 class PointerNode: public ExprNode {
 public:
     PointerNode(ExprNode *expr): expr(expr) { }
     ExprNode *expr;
 };
 
+// Node for Reference
+// To be simple, we only parse one kind rule: &id
 class ReferenceNode: public ExprNode {
     ReferenceNode(Identifier *id): id(id) { }
     Identifier *id;
@@ -496,7 +566,7 @@ class ReferenceNode: public ExprNode {
 
 // GlobalArea can only do some definition
 // including const, variable, function and class
-// especially, function and class can only be defined in the GlobalArea
+// Especially, function and class can only be defined in the GlobalArea
 class GlobalArea: public StatNode {
 public:
     GlobalArea() = default;
@@ -521,10 +591,10 @@ public:
     Value *convertToCode() override;
 
 private:
-    ConstDecList *constDecList{};
-    VarDecList *varDecList{};
-    FuncDecList *funcDecList{};
-    ClassDecList *classDecList{};
+    ConstDecList *constDecList{};       // list of const declaration
+    VarDecList *varDecList{};           // list of variable declaration
+    FuncDecList *funcDecList{};         // list of function declaration
+    ClassDecList *classDecList{};       // list of class declaration
 };
 
 #endif

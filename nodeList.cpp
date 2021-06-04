@@ -18,7 +18,7 @@ Value * Program::convertToCode() {
     return this->mainFunc->convertToCode();
 }
 
-Value * GlobalArea::convertToCode() {
+Value * GlobalArea:: convertToCode() {
     for(auto &it: *constDecList){
         it->convertToCode();
     }
@@ -28,9 +28,9 @@ Value * GlobalArea::convertToCode() {
     for(auto &it: *funcDecList){
         it->convertToCode();
     }
-    for(auto &it: *classDecList){
-        it->convertToCode();
-    }
+//    for(auto &it: *classDecList){
+//        it->convertToCode();
+//    }
     return nullptr;
 }
 
@@ -98,7 +98,54 @@ Constant* ConstValue::create() {
             throw CompileException("fuck");
 
     }
+}
+
+Value *VarDec::convertToCode() {
+    if (type->type == SKY_ARRAY) {
+        engine.arrayMap[id->name] = type->arrayType;
+    }
+    auto varType = type->toLLVMType();
+    if(isGlobal()) {
+        return new GlobalVariable(engine.getModule(), varType, false, GlobalValue::ExternalLinkage, type->)
+    } else {
+        return CreateEntryBlockAlloca(engine.nowFunction(), id->name, varType);
+    }
     return nullptr;
+}
+
+Constant* SkyType::Create() {
+    if(type == SKY_VAR) {
+        switch (*varType) {
+            case SKY_INT: // All default : 0
+                return builder.getInt32(0);
+            case SKY_INT_64:
+                return builder.getInt64(0);
+            case SKY_CHAR:
+                return builder.getInt8(0);
+            case SKY_FLOAT:
+                return ConstantFP::get(builder.getFloatTy(), .0);
+            case SKY_DOUBLE:
+                return ConstantFP::get(builder.getDoubleTy(), .0);
+            case SKY_BOOL:
+                return builder.getInt1(false);
+            case SKY_INT_POINTER:
+            case SKY_INT_64_POINTER:
+            case SKY_CHAR_POINTER:
+            case SKY_FLOAT_POINTER:
+            case SKY_DOUBLE_POINTER:
+            case SKY_BOOL_POINTER:
+                return builder.getInt32(0);
+        }
+    } else if(type == SKY_ARRAY) {
+        int siz = arrayType->size;
+        vector<Constant *> vec;
+        vec.resize(siz);
+        for (int i = 0; i < siz; ++i) {
+            vec.push_back(arrayType->type->Create());
+        }
+        auto arrType = ArrayType::get(toLLVMType(), siz);
+        return ConstantArray::get(arrType, vec);
+    }
 }
 
 Value * FuncDec::convertToCode() {
@@ -170,11 +217,9 @@ Type * SkyType::toLLVMType() {
     } else return llvm::Type::getVoidTy(context);
 }
 
-Value *SkyType::convertToCode() {
-    return nullptr;
-}
 
 Value *Identifier::convertToCode() {
     auto value = engine.findVarByName(name);
     return new LoadInst(value->getType(), value, "tmp", false, builder.GetInsertBlock());
 }
+

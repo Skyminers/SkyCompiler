@@ -44,7 +44,7 @@ private:
     Function *main;
     stack<Function*> funcList;
     vector<BasicBlock*> blockID;
-
+public:
     /*
      * ArrayType is constant var, which need start point and length.
      * So, array type should be different from normal var.

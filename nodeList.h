@@ -281,6 +281,7 @@ public:
 
     Value *convertToCode() override;
 
+    Constant* Create();
     Type* toLLVMType();
 //    Constant* initValue(ConstValue *v = nullptr);
 
@@ -302,13 +303,15 @@ public:
 class VarDec: public StatNode {
 public:
     VarDec(Identifier *id, SkyType *type, ExprNode* expr): id(id), type(type), expr(expr), global(false) { }
-    Value *convertToCode() override;
     bool isGlobal() const {
         return this->global;
     }
     void setGlobal() {
         this->global = true;
     }
+
+    Value *convertToCode() override;
+
     Identifier *id;
     SkyType *type;    // if type == nullptr, need Type Inference
     ExprNode *expr;     // when type == nullptr, calculate this expr to get the type

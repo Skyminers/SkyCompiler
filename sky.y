@@ -199,7 +199,7 @@ branch_statement
 
 for_statement
     : WHILE '(' expression ')' compound_statement           { $$ = new WhileStat($3, $5); }
-    | FOR name IN '[' INTEGER ',' INTEGER ',' INTEGER ']' compound_statement    { $$ = new ForStat($2, $5, $7, $9, $11); }
+    | FOR name IN '[' expression ',' expression ',' expression ']' compound_statement    { $$ = new ForStat($2, $5, $7, $9, $11); }
     ;
 
 jump_statement

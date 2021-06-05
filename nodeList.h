@@ -458,11 +458,11 @@ private:
 // The interval should be [start, end)
 class ForStat: public StatNode {
 public:
-    ForStat(Identifier *forVar, int start, int end, int step, CompoundStat* body):
+    ForStat(Identifier *forVar, ExprNode *start, ExprNode *end, ExprNode *step, CompoundStat* body):
          forVar(forVar), start(start), end(end), step(step), body(body) { }
 
 private:
-    int start, end, step;
+    ExprNode *start, *end, *step;
     CompoundStat *body;
     Identifier *forVar;
 };

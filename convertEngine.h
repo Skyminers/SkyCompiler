@@ -50,6 +50,9 @@ public:
      * So, array type should be different from normal var.
      * */
     map<string, SkyArrayType*> arrayMap;
+    map<uint, string> ptrMap;
+    BasicBlock * breakBlock;
+    BasicBlock * continueBlock;
 
 public:
     ConvertEngine(){
@@ -67,6 +70,9 @@ public:
         funcType = FunctionType::get(builder.getInt32Ty(), makeArrayRef(valuesType), true);
         print = Function::Create(funcType, Function::ExternalLinkage, Twine("printf"), module);
         print->setCallingConv(CallingConv::C);
+
+        breakBlock = nullptr;
+        continueBlock = nullptr;
     }
 
     /*
@@ -94,6 +100,8 @@ public:
 
     Function* askForFunction(string funcName);
     void compileToFile(string fileName);
+
+
 };
 
 #endif //CONVERTENGINE_H

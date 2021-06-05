@@ -8,9 +8,65 @@
 
 extern ConvertEngine engine;
 
-llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction, llvm::StringRef VarName, llvm::Type* type) {
-    llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
+AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction, llvm::StringRef VarName, llvm::Type* type) {
+    IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
     return TmpB.CreateAlloca(type, nullptr, VarName);
+}
+
+Value *calcOp(Value* left, Value* right, BinaryOperators op) {
+    auto type1 = left->getType();
+    auto type2 = right->getType();
+    bool floatFlag = type1->isFloatTy() || type2->isFloatTy();
+    bool doubleFlag = type1->isDoubleTy() || type2->isDoubleTy();
+    switch (op) {
+        case OP_PLUS:
+            if (floatFlag || doubleFlag) {
+                return builder.CreateFAdd(left, right, "addFloat");
+            } else {
+                return builder.CreateAdd(left, right, "addInt");
+            }
+        case OP_MINUS:
+            if (floatFlag || doubleFlag) {
+                return builder.CreateFSub(left, right, "subFloat");
+            } else {
+                return builder.CreateFSub(left, right, "subInt");
+            }
+        case OP_MUL:
+            if (floatFlag || doubleFlag) {
+                return builder.CreateFMul(left, right, "mulFloat");
+            } else {
+                return builder.CreateFMul(left, right, "mulInt");
+            }
+        case OP_DIV:
+            return builder.CreateSDiv(left, right, "divSigned");
+        case OP_EQ:
+            return builder.CreateICmpEQ(left, right, "equal");
+        case OP_NE:
+            return builder.CreateICmpNE(left, right, "neq");
+        case OP_GT:
+            return builder.CreateICmpSGT(left, right, "gt");
+        case OP_LT:
+            return builder.CreateICmpSLT(left, right, "lt");
+        case OP_GE:
+            return builder.CreateICmpSGE(left, right, "ge");
+        case OP_LE:
+            return builder.CreateICmpSLE(left, right, "le");
+        case OP_AND:
+            return builder.CreateAnd(left, right, "and");
+        case OP_OR:
+            return builder.CreateOr(left, right, "or");
+        case OP_XOR:
+            return builder.CreateXor(left, right, "xor");
+        case OP_MOD:
+            return builder.CreateSRem(left, right, "mod");
+        case OP_LEFT:
+            return builder.CreateShl(left, right, "shl");
+        case OP_RIGHT:
+            return builder.CreateAShr(left, right, "shr");
+        case OP_PTR:
+            return nullptr;
+    }
+
 }
 
 Value * Program::convertToCode() {
@@ -57,6 +113,10 @@ Value *SkyFloat::convertToCode() {
 
 Value *SkyChar::convertToCode() {
     return builder.getInt8(value.cVal);
+}
+
+Value *SkyBool::convertToCode() {
+    return builder.getInt1(value.bVal);
 }
 
 Value *SkyCharPointer::convertToCode() {
@@ -106,7 +166,7 @@ Value *VarDec::convertToCode() {
     }
     auto varType = type->toLLVMType();
     if(isGlobal()) {
-        return new GlobalVariable(engine.getModule(), varType, false, GlobalValue::ExternalLinkage, type->)
+        return new GlobalVariable(*engine.getModule(), varType, false, GlobalValue::ExternalLinkage, type->Create(), id->name);
     } else {
         return CreateEntryBlockAlloca(engine.nowFunction(), id->name, varType);
     }
@@ -223,3 +283,153 @@ Value *Identifier::convertToCode() {
     return new LoadInst(value->getType(), value, "tmp", false, builder.GetInsertBlock());
 }
 
+Value *CompoundStat::convertToCode() {
+    for (auto it : *statList) {
+        it->convertToCode();
+    }
+    return nullptr;
+}
+
+Value *AssignStat::convertToCode() {
+    Value *res = nullptr;
+//    res = builder.CreateStore(right_expr->convertToCode(), ));
+    return nullptr;
+}
+
+Value *BinaryExpr::convertToCode() {
+    auto leftValue = this->left->convertToCode();
+    auto rightValue = this->right->convertToCode();
+    return calcOp(leftValue, rightValue, op);
+}
+
+Value *ArrayReference::convertToCode() {
+    return builder.CreateLoad(getValueI(), "arrReference");
+}
+
+Value *ArrayReference::getValueI() {
+    auto arr = engine.findVarByName(id->name);
+    auto index = subInd->convertToCode();
+    vector<Value*> valueVec;
+    valueVec.push_back(builder.getInt32(0));
+    valueVec.push_back(index);
+    return builder.CreateInBoundsGEP(arr, ArrayRef<Value *>(valueVec));
+}
+
+Value *FuncCall::convertToCode() {
+    auto func = engine.getModule()->getFunction(id->name);
+    if (func == nullptr) {
+        throw FuncNotFound(id->name + " not found");
+    }
+    vector<Value*> inputArgs;
+    auto funcNeed = func->arg_begin();
+    for (auto & it : *args) {
+        if (funcNeed->hasNonNullAttr()) {
+            auto * addr = engine.findVarByName(dynamic_cast<Identifier*>(it)->name);
+            inputArgs.push_back(addr);
+        } else {
+            inputArgs.push_back(it->convertToCode());
+        }
+        funcNeed ++;
+    }
+    Value *ret = builder.CreateCall(func, inputArgs, "callFunc");
+    return ret;
+}
+
+Value *IfStat::convertToCode() {
+
+    Value *condValue = condExpr->convertToCode();
+    condValue = builder.CreateICmpNE(condValue, ConstantInt::get(Type::getInt1Ty(context), 0, true), "if");
+
+    auto func = engine.nowFunction();
+    auto thenCond = BasicBlock::Create(context, "thenCond", func);
+    auto elseCond = BasicBlock::Create(context, "elseCond", func);
+    auto common = BasicBlock::Create(context, "common", func);
+
+    // then
+    auto branch = builder.CreateCondBr(condValue, thenCond, elseCond);
+    builder.SetInsertPoint(thenCond);
+    thenStat->convertToCode();
+
+    builder.CreateBr(common);
+    thenCond = builder.GetInsertBlock();
+
+    // else
+    builder.SetInsertPoint(elseCond);
+
+    if (elseStat != nullptr) {
+        elseStat->convertToCode();
+    }
+    builder.CreateBr(common);
+    elseCond = builder.GetInsertBlock();
+
+    builder.SetInsertPoint(common);
+    return branch;
+}
+
+Value *ForStat::convertToCode() {
+    auto func = engine.nowFunction();
+
+    Value * startValue = start->convertToCode();
+    Value * endValue = end->convertToCode();
+    Value * stepValue = step->convertToCode();
+
+    Value * varValue = engine.findVarByName(forVar->name);
+    builder.CreateStore(startValue, varValue);
+
+    BasicBlock *condition = BasicBlock::Create(context, "condition", func);
+    BasicBlock *loop = BasicBlock::Create(context, "loopCode", func);
+    BasicBlock *breakLoop = BasicBlock::Create(context, "breakLoop", func);
+
+    // condition
+    builder.CreateBr(condition);
+    builder.SetInsertPoint(condition);
+    auto nowValue = forVar->convertToCode();
+    auto condValue = builder.CreateICmpSLE(nowValue, endValue);
+    condValue = builder.CreateICmpNE(condValue, ConstantInt::get(Type::getInt1Ty(context), 0, true));
+    auto branch = builder.CreateCondBr(condValue, loop, breakLoop);
+    condition = builder.GetInsertBlock();
+
+    // loop
+    builder.SetInsertPoint(loop);
+    body->convertToCode();
+    Value * newVarValue = builder.CreateAdd(nowValue, stepValue); // add step
+    builder.CreateStore(newVarValue, varValue);
+    builder.CreateBr(condition);
+    loop = builder.GetInsertBlock();
+
+    builder.SetInsertPoint(breakLoop);
+    return branch;
+}
+
+Value *WhileStat::convertToCode() {
+    auto func = engine.nowFunction();
+    BasicBlock * condition = BasicBlock::Create(context, "condition", func);
+    BasicBlock * loop = BasicBlock::Create(context, "loop", func);
+    BasicBlock * breakLoop = BasicBlock::Create(context, "breakLoop", func);
+
+    // condition
+    builder.CreateBr(condition);
+    builder.SetInsertPoint(condition);
+    auto condValue = cond->convertToCode();
+    condValue = builder.CreateICmpNE(condValue, ConstantInt::get(Type::getInt1Ty(context), 0, true));
+    auto branch = builder.CreateCondBr(condValue, loop, breakLoop);
+    condition = builder.GetInsertBlock();
+
+    // loop
+    builder.SetInsertPoint(loop);
+    body->convertToCode();
+    builder.CreateBr(condition);
+
+    builder.SetInsertPoint(breakLoop);
+    return branch;
+}
+
+Value *PointerNode::convertToCode() {
+
+    return nullptr;
+}
+
+Value *JumpStat::convertToCode() {
+
+    return nullptr;
+}

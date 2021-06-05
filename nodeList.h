@@ -408,34 +408,23 @@ private:
     ClassBody *body;
 };
 
-enum AssignType {
-    ID_ASSIGN,
-    ARRAY_ASSIGN,
-    CLASS_ASSIGN,
-    POINTER_ASSIGN
-};
-
 // Node for assign statement
 // Example:
-//      name = right_expr                   type = ID_ASSIGN
-//      name[expression] = right_expr       type = ARRAY_ASSIGN
-//      name.name = right_expr              type = CLASS_ASSIGN
-//      *name = right_expr                  type = POINTER_ASSIGN
-//      *name[expression] = right_expr      type = POINTER_ASSIGN
-//      *name.name = right_expr             type = POINTER_ASSIGN
-//      *(expression) = right_expr          type = POINTER_ASSIGN
+//      left_expr = right_expr
+// Although left part is represented by an expression, the actual forms can only be as follows:
+//      name = right_expr
+//      name[expression] = right_expr
+//      name.name = right_expr
+//      *name = right_expr
+//      *name[expression] = right_expr
+//      *name.name = right_expr
+//      *(expression) = right_expr
 class AssignStat: public StatNode {
 public:
-    AssignStat(Identifier *id, ExprNode *expr): id(id), expr(expr), type(ID_ASSIGN) { }
-    AssignStat(Identifier *id, ExprNode *subInd, ExprNode *expr): id(id), subInd(subInd), expr(expr), type(ARRAY_ASSIGN) { }
-    AssignStat(Identifier *id, Identifier *cid, ExprNode *expr): id(id), childId(cid), expr(expr), type(CLASS_ASSIGN) { }
-    AssignStat(PointerNode *pNode, ExprNode *expr): pNode(pNode), expr(expr), type(POINTER_ASSIGN) { }
-
+    AssignStat(ExprNode *lexpr, ExprNode *rexpr): left_expr(lexpr), right_expr(rexpr) { }
+    Value* convertToCode() override;
 private:
-    Identifier *id{}, *childId{};
-    ExprNode *expr, *subInd{};
-    AssignType type;
-    PointerNode *pNode{};
+    ExprNode *left_expr, *right_expr;
 };
 
 // Node for if statement
@@ -461,6 +450,8 @@ public:
     ForStat(Identifier *forVar, ExprNode *start, ExprNode *end, ExprNode *step, CompoundStat* body):
          forVar(forVar), start(start), end(end), step(step), body(body) { }
 
+    Value *convertToCode() override;
+
 private:
     ExprNode *start, *end, *step;
     CompoundStat *body;
@@ -473,6 +464,8 @@ private:
 class WhileStat: public StatNode {
 public:
     WhileStat(ExprNode *cond, CompoundStat* body): cond(cond), body(body) { }
+
+    Value *convertToCode() override;
 
 private:
     ExprNode *cond;
@@ -489,6 +482,8 @@ class JumpStat: public StatNode {
 public:
     JumpStat(TypeOfJump type, ExprNode *retExpr): type(type), retExpr(retExpr) { }
 
+    Value *convertToCode() override;
+
 private:
     ExprNode *retExpr;  // if the jump type is RETURN, it may has a return expression
     TypeOfJump type;    // record the type of jump (BREAK, CONTINUE, RETURN, ...)
@@ -500,7 +495,7 @@ private:
 class CompoundStat: public StatNode {
 public:
     explicit CompoundStat(StatList *statList): statList(statList) { }
-
+    Value* convertToCode() override;
 private:
     StatList *statList;
 };
@@ -512,6 +507,8 @@ private:
 class BinaryExpr: public ExprNode {
 public:
     BinaryExpr(ExprNode *left, BinaryOperators op, ExprNode *right): left(left), op(op), right(right) { }
+
+    Value *convertToCode() override;
 
 private:
     ExprNode *left, *right;
@@ -525,6 +522,9 @@ private:
 class ArrayReference: public ExprNode {
 public:
     ArrayReference(Identifier *id, ExprNode *subInd): id(id), subInd(subInd) { }
+
+    Value *convertToCode() override;
+    Value* getValueI();
 
 private:
     Identifier *id;
@@ -548,6 +548,8 @@ class FuncCall: public ExprNode, StatNode {
 public:
     FuncCall(Identifier *id, ExprList *args): id(id), args(args) { }
 
+    Value *convertToCode() override;
+
 private:
     Identifier *id;     // the function name
     ExprList *args;     // the arguments of the function
@@ -565,6 +567,9 @@ private:
 class PointerNode: public ExprNode {
 public:
     PointerNode(ExprNode *expr): expr(expr) { }
+
+    Value *convertToCode() override;
+
     ExprNode *expr;
 };
 

@@ -255,13 +255,13 @@ factor
     ;
 
 number
-    : name '[' expression ']'                               { $$ = new ArrayRef($1, $3); }
+    : name '[' expression ']'                               { $$ = new ArrayReference($1, $3); }
     | name '.' name                                         { $$ = new ClassRef($1, $3); }
     | '(' expression ')'                                    { $$ = $2; }
     | name '(' expression_list ')'                          { $$ = new FuncCall($1, $3); }
     | const_value                                           { $$ = $1; }
     | name                                                  { $$ = $1; }
-    | '*' name '[' expression ']'                           { $$ = new PointerNode(new ArrayRef($2, $4)); }
+    | '*' name '[' expression ']'                           { $$ = new PointerNode(new ArrayReference($2, $4)); }
     | '*' name '.' name                                     { $$ = new PointerNode(new ClassRef($2, $4)); }
     | '*' name '(' expression_list ')'                      { $$ = new PointerNode(new FuncCall($2, $4)); }
     | '*' name                                              { $$=  new PointerNode($2); }
@@ -280,7 +280,7 @@ assign_statement
     | name '[' expression ']' '=' expression                { $$ = new AssignStat($1, $3, $6); }
     | name '.' name '=' expression                          { $$ = new AssignStat($1, $3, $5); }
     | '*' name '=' expression                               { $$ = new AssignStat(new PointerNode($2), $4); }
-    | '*' name '[' expression ']' '=' expression            { $$ = new AssignStat(new PointerNode(new ArrayRef($2, $4)), $7); }
+    | '*' name '[' expression ']' '=' expression            { $$ = new AssignStat(new PointerNode(new ArrayReference($2, $4)), $7); }
     | '*' name '.' name '=' expression                      { $$ = new AssignStat(new PointerNode(new ClassRef($2, $4)), $6); }
     | '*' '(' expression ')' '=' expression                 { $$ = new AssignStat(new PointerNode($3), $6); }
     ;

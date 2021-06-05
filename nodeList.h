@@ -522,9 +522,9 @@ private:
 // Example:
 //      arrName[index]
 // index is saved as an expression(ExprNode)
-class ArrayRef: public ExprNode {
+class ArrayReference: public ExprNode {
 public:
-    ArrayRef(Identifier *id, ExprNode *subInd): id(id), subInd(subInd) { }
+    ArrayReference(Identifier *id, ExprNode *subInd): id(id), subInd(subInd) { }
 
 private:
     Identifier *id;

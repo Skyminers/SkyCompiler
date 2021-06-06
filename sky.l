@@ -63,24 +63,24 @@ using namespace std;
 "&="                          {return AND_ASSIGN;}
 "^="                          {return XOR_ASSIGN;}
 "|="                          {return OR_ASSIGN;}
-"!"                           {return OP_NOT;}
-"+"                           {return OP_PLUS;}           
-"-"                           {return OP_MINUS;}           
+"!"                           {return OPER_NOT;}
+"+"                           {return OPER_PLUS;}           
+"-"                           {return OPER_MINUS;}           
 "*"                           {return('*');}
-"/"                           {return OP_DIV;} 
-"%"                           {return OP_MOD;} 
-">>"                          {return OP_RIGHT;}
-"<<"                          {return OP_LEFT;}
-"->"                          {return OP_PTR;}      /*pointer or return type*/ 
-"&&"                          {return OP_AND;}
+"/"                           {return OPER_DIV;} 
+"%"                           {return OPER_MOD;} 
+">>"                          {return OPER_RIGHT;}
+"<<"                          {return OPER_LEFT;}
+"->"                          {return OPER_PTR;}      /*pointer or return type*/ 
+"&&"                          {return OPER_AND;}
 "&"                           {return('&');}
-"||"                          {return OP_OR;}
-"<"                           {return OP_LT;}       /*less than*/ 
-"<="                          {return OP_LE;}
-">"                           {return OP_GT;}       /*greater than*/           
-">="                          {return OP_GE;}
-"=="                          {return OP_EQ;}         
-"!="                          {return OP_NE;}
+"||"                          {return OPER_OR;}
+"<"                           {return OPER_LT;}       /*less than*/ 
+"<="                          {return OPER_LE;}
+">"                           {return OPER_GT;}       /*greater than*/           
+">="                          {return OPER_GE;}
+"=="                          {return OPER_EQ;}         
+"!="                          {return OPER_NE;}
 \n                            {return LF;}
 
 "//"[^\n]*                    { }

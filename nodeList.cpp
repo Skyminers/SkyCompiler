@@ -440,11 +440,27 @@ Value *JumpStat::convertToCode() {
         case CONTINUE:
             return builder.CreateBr(engine.getCurContinueBlock());
         case RETURN:
-            return builder.CreateRet(retExpr->convertToCode());
+            if (retExpr != nullptr) {
+                return builder.CreateRet(retExpr->convertToCode());
+            } else {
+                return builder.CreateRetVoid();
+            }
     }
     return nullptr;
 }
 
 Value *ReferenceNode::convertToCode() {
     return engine.findVarByName(id->name);
+}
+
+Value * PointerNode::convertToCode() {
+    return nullptr;
+}
+
+Value * SkyArrayType::convertToCode() {
+    return nullptr;
+}
+
+Value * SkyType::convertToCode() {
+    return nullptr;
 }

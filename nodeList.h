@@ -138,7 +138,6 @@ public:
     virtual ConstValueUnion getValue() = 0;
     virtual ConstValue *operator-() = 0;
 
-    Value *convertToCode() override;
     Constant* create();
 };
 

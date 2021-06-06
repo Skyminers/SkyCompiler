@@ -77,13 +77,13 @@ void ConvertEngine::exitLoop() {
 }
 
 // Unit test
-int main() {
-    engine.createMainFunction();
-    auto mainFunc = engine.getMain();
-    auto mainBlock = BasicBlock::Create(context, "main", mainFunc);
-    engine.enterFunction(mainFunc);
-    builder.SetInsertPoint(mainBlock);
-    builder.CreateRetVoid();
+//int main() {
+//    engine.createMainFunction();
+//    auto mainFunc = engine.getMain();
+//    auto mainBlock = BasicBlock::Create(context, "main", mainFunc);
+//    engine.enterFunction(mainFunc);
+//    builder.SetInsertPoint(mainBlock);
+//    builder.CreateRetVoid();
 //    builder.CreateRet(builder.getInt32(0));
-    engine.compileToFile("skyModule");
-}
+//    engine.compileToFile("skyModule");
+//}

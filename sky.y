@@ -76,7 +76,7 @@ extern int yylex();
 
 %token  MAIN PRINT SCAN
         VAR LET NEW DELETE
-        FUNCTION BREAK CONTINUE RETURN
+        FUNCTION JUMP_BREAK JUMP_CONTINUE JUMP_RETURN
         IF ELSE FOR WHILE IN
         CLASS INIT DEL THIS
         TYPE_INT TYPE_INT_POINTER TYPE_INT_64 TYPE_INT_64_POINTER
@@ -203,10 +203,10 @@ for_statement
     ;
 
 jump_statement
-    : BREAK                                                 { $$ = new JumpStat(TypeOfJump::BREAK, nullptr); }
-    | CONTINUE                                              { $$ = new JumpStat(TypeOfJump::CONTINUE, nullptr); }
-    | RETURN                                                { $$ = new JumpStat(TypeOfJump::RETURN, nullptr); }
-    | RETURN expression                                     { $$ = new JumpStat(TypeOfJump::RETURN, $2); }
+    : JUMP_BREAK                                                 { $$ = new JumpStat(TypeOfJump::BREAK, nullptr); }
+    | JUMP_CONTINUE                                              { $$ = new JumpStat(TypeOfJump::CONTINUE, nullptr); }
+    | JUMP_RETURN                                                { $$ = new JumpStat(TypeOfJump::RETURN, nullptr); }
+    | JUMP_RETURN expression                                     { $$ = new JumpStat(TypeOfJump::RETURN, $2); }
     ;
 
 expression

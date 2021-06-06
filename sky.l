@@ -18,14 +18,14 @@ using namespace std;
 "new"                         {return NEW;}
 "delete"                      {return DELETE;}
 "func"                        {return FUNCTION;}
-"return"                      {return RETURN;} 
+"return"                      {return JUMP_RETURN;}
 "if"                          {return IF;}
 "else"                        {return ELSE;}
 "for"                         {return FOR;} 
 "while"                       {return WHILE;}
 "in"                          {return IN;}
-"continue"                    {return CONTINUE;}
-"break"                       {return BREAK;}
+"continue"                    {return JUMP_CONTINUE;}
+"break"                       {return JUMP_BREAK;}
 "class"                       {return CLASS;}
 "__init__"                    {return INIT;}         /*构造函数*/
 "__del__"                     {return DEL;}          /*析构函数*/

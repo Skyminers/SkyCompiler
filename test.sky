@@ -1,11 +1,15 @@
 var i:int, j:char;
 
 func a() -> bool {
-
+    return false;
 }
 
 func main() -> int {
+    var a:int;
+    scanf("%d", &a);
+    printf("%d", a);
     if (1 > 0) {
+        printf("fuck you!@");
     }
     return 0;
 }

@@ -308,7 +308,7 @@ Type * SkyType::toLLVMType() {
 
 Value *Identifier::convertToCode() {
     auto value = engine.findVarByName(name);
-    return new LoadInst(value->getType(), value, "tmp", false, builder.GetInsertBlock());
+    return new LoadInst(value->getType()->getPointerElementType(), value, "tmp", false, builder.GetInsertBlock());
 }
 
 Value *CompoundStat::convertToCode() {
@@ -505,6 +505,10 @@ Value * FuncCall::callSysIO() {
     for (auto & it : *args) {
         if (!flag) {
             char* p = dynamic_cast<SkyCharPointer*>(it)->getValue().sVal;
+            for (int i = 0; ; ++ i) {
+                if ( *(p+i) == '\0' ) break;
+                if( *(p+i) == '@' ) *(p+i) = '\n';
+            }
             auto formatConst = llvm::ConstantDataArray::getString(context, p);
             auto formatStrVar = new llvm::GlobalVariable(*(engine.getModule()), llvm::ArrayType::get(builder.getInt8Ty(), strlen(p) + 1), true, llvm::GlobalValue::ExternalLinkage, formatConst, "printfStr");
             auto zero = llvm::Constant::getNullValue(builder.getInt32Ty());

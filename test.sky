@@ -1,49 +1,63 @@
-var name: char[100], pre: char[1000], grade: int, credit: int;
+var name: char[1000], pre: char[10000], grade: int, credit: int;
 var sum_attempt: int, sum_complete: int, sum_remain: int, sum_grade: int;
 var num_complete: int, num_remain: int;
 var names_complete: char[10000], names_remain: char[10000];
 var pres: char[100000];
-var pre_name: char[100];
+var pre_name: char[1000];
+var st_complete: int[10000], st_pres: int[10000], st_remain: int[10000];
 
-func check(st: int) -> bool {
-    if (pres[st] == '\0') {
-        return true;
+func check(id: int) -> int {
+    //printf("%d@", st);
+    if (pres[st_pres[id]] == '\0') {
+        return 1;
     }
+    //printf("%d@", st);
     var tmp_len: int, top: int, orr: int, andd: int;
-    var stack: bool[5];
+    var stack: int[5];
     tmp_len = 0;
     top = 0;
     orr = 0;
     andd = 0;
     var i: int, j: int, k: int;
-    for i in [0, 1000, 1] {
+    var flag: int;
+    for i in [st_pres[id], st_pres[id+1], 1] {
         var ch: char;
-        ch = pres[st + i];
+        ch = pres[i];
         if (ch == ',' || ch == ';' || ch == '\0') {
             pre_name[tmp_len] = '\0';
             top = top + 1;
-            stack[top] = false;
+            stack[top] = 0;
             for j in [0, num_complete, 1] {
-                var flag: bool;
-                flag = true;
-                for k in [0, tmp_len + 1, 1] {
-                    if (names_complete[j * 100 + k] != pre_name[k]) {
-                        flag = false;
+                flag = 1;
+                for k in [st_complete[j], st_complete[j+1], 1] {
+                    //printf("%c=?%c ", names_complete[k], pre_name[k - st_complete[j]]);
+                    if (names_complete[k] != pre_name[k - st_complete[j]]) {
+                        flag = 0;
                         break;
                     }
                 }
-                if (flag) {
-                    stack[top] = true;
+                //printf("%d@", flag);
+                if (flag == 1) {
+                    //printf("%d", j);
+                    stack[top] = 1;
                     break;
                 }
             }
             if (andd > 0) {
-                stack[top - 1] = stack[top - 1] && stack[top];
+                if (stack[top - 1] == 1 && stack[top] == 1) {
+                    stack[top - 1] = 1;
+                } else {
+                    stack[top - 1] = 0;
+                }
                 top = top - 1;
                 andd = 0;
             }
             if (orr > 1) {
-                stack[top - 1] = stack[top - 1] || stack[top];
+                if (stack[top - 1] == 1 || stack[top] == 1) {
+                    stack[top - 1] = 1;
+                } else {
+                    stack[top - 1] = 0;
+                }
                 top = top - 1;
                 orr = orr - 1;
             }
@@ -55,12 +69,17 @@ func check(st: int) -> bool {
             }
             if (ch == '\0') {
                 if (orr > 0) {
-                    stack[top - 1] = stack[top - 1] || stack[top];
+                    if (stack[top - 1] == 1 || stack[top] == 1) {
+                        stack[top - 1] = 1;
+                    } else {
+                        stack[top - 1] = 0;
+                    }
                     top = top - 1;
                     orr = orr - 1;
                 }
                 break;
             }
+            tmp_len = 0;
         } else {
             pre_name[tmp_len] = ch;
             tmp_len = tmp_len + 1;
@@ -71,36 +90,32 @@ func check(st: int) -> bool {
 
 func main() -> int {
     var i: int, j: int;
-    printf("!!@");
     while (1 > 0) {
-        printf("!!@");
-        var len: int, ch: char;
+        var len_name: int, len_pre: int, ch: char;
         var scanfRet:int, fuyi:int;
         scanfRet = scanf("%c", &ch);
-        printf("!!@");
-        printf("%c", ch);
         fuyi = -1;
         if (scanfRet == fuyi) { break; }
         if (ch == '\n') {
             scanfRet = scanf("%c", &ch);
             if (scanfRet == fuyi) { break; }
         }
-        len = 0;
+        len_name = 0;
         while (ch != '|') {
-            name[len] = ch;
-            len = len + 1;
+            name[len_name] = ch;
+            len_name = len_name + 1;
             scanf("%c", &ch);
         }
-        //printf("%s@", name);
+        name[len_name] = '\0';
         scanf("%d|", &credit);
-        len = 0;
+        len_pre = 0;
         scanf("%c", &ch);
         while (ch != '|') {
-            pre[len] = ch;
-            len = len + 1;
+            pre[len_pre] = ch;
+            len_pre = len_pre + 1;
             scanf("%c", &ch);
         }
-        pre[len] = '\0';
+        pre[len_pre] = '\0';
         scanf("%c", &ch);
         grade = -1;
         if (ch == 'A') { grade = 4; }
@@ -112,22 +127,26 @@ func main() -> int {
             sum_grade = sum_grade + grade * credit;
             sum_attempt = sum_attempt + credit;
         }
+        var st: int;
         if (grade > 0) {
-            for i in [0, 100, 1] {
-                names_complete[num_complete * 100 + i] = name[i];
-                if (name[i] == '\0') { break; }
+            st = st_complete[num_complete];
+            for i in [st, st+len_name+1, 1] {
+                names_complete[i] = name[i - st];
             }
             sum_complete = sum_complete + credit;
             num_complete = num_complete + 1;
+            st_complete[num_complete] = st + len_name + 1;
         } else {
-            for i in [0, 1000, 1] {
-                pres[num_remain * 1000 + i] = pre[i];
-                if (pre[i] == '\0') { break; }
+            st = st_pres[num_remain];
+            for i in [st, st+len_pre+1, 1] {
+                pres[i] = pre[i - st];
             }
-            for i in [0, 100, 1] {
-                names_remain[num_remain * 100 + i] = name[i];
-                if (name[i] == '\0') { break; }
+            st_pres[num_remain+1] = st+len_pre+1;
+            st = st_remain[num_remain];
+            for i in [st, st+len_name+1, 1] {
+                names_remain[i] = name[i - st];
             }
+            st_remain[num_remain+1] = st+len_name+1;
             sum_remain = sum_remain + credit;
             num_remain = num_remain + 1;
         }
@@ -136,13 +155,12 @@ func main() -> int {
     if (sum_attempt == 0) {
         printf("GPA: 0.0@");
     } else {
-        //GPA = sum_grade * 1.0 / sum_attempt;
         var aa: int, bb: int, cc: int;
         aa = sum_grade / sum_attempt;
         bb = (sum_grade % sum_attempt) * 10 / sum_attempt;
-        cc = (sum_grade % sum_attempt) * 10 % sum_attempt;
-        while (cc >= 10) { cc = cc / 10; }
-        if (cc > 5) {
+        cc = (sum_grade % sum_attempt) * 100 / sum_attempt - bb * 10;
+        //printf("%d %d %d %d %d@", aa, bb, cc, sum_grade, sum_attempt);
+        if (cc >= 5) {
             bb = bb + 1;
             if (bb == 10) {
                 aa = aa + 1;
@@ -151,7 +169,6 @@ func main() -> int {
         }
         printf("GPA: %d.%d@", aa, bb);
     }
-    //printf("GPA: %.1f@", GPA);
     printf("Hours Attempted: %d@", sum_attempt);
     printf("Hours Completed: %d@", sum_complete);
     printf("Credits Remaining: %d@", sum_remain);
@@ -159,18 +176,17 @@ func main() -> int {
     var num: int;
     num = 0;
     for i in [0, num_remain, 1] {
-        if (check(i * 1000)) {
+        if (check(i) == 1) {
             num = num + 1;
             printf("  ");
-            for j in [0, 100, 1] {
-                if (names_remain[i * 100 + j] == '\0') { break; }
-                printf("%c", names_remain[i * 100 + j]);
+            for j in [st_remain[i], st_remain[i+1]-1, 1] {
+                printf("%c", names_remain[j]);
             }
             printf("@");
         }
     }
     if (num == 0) {
-        printf("  None - Congratulations!");
+        printf("  None - Congratulations!@");
     }
     return 0;
 }

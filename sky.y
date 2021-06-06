@@ -9,6 +9,7 @@ void yyerror(char *s){
 }
 
 extern int yylex();
+Program * root;
 %}
 
 %union {
@@ -95,7 +96,7 @@ extern int yylex();
 %%
 
 program
-    : global_area main_func                                 { $$ = new Program($1, $2); }
+    : global_area main_func                                 { $$ = new Program($1, $2); root = $$;}
     ;
 
 global_area

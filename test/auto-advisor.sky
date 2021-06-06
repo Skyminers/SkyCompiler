@@ -96,9 +96,14 @@ func main() -> int {
         scanfRet = scanf("%c", &ch);
         fuyi = -1;
         if (scanfRet == fuyi) { break; }
-        if (ch == '\n') {
+        var flag: int;
+        flag = 1;
+        while (ch == '\n') {
             scanfRet = scanf("%c", &ch);
-            if (scanfRet == fuyi) { break; }
+            if (scanfRet == fuyi) { flag = 0; break; }
+        }
+        if (flag == 0) {
+            break;
         }
         len_name = 0;
         while (ch != '|') {
@@ -186,7 +191,10 @@ func main() -> int {
         }
     }
     if (num == 0) {
-        printf("  None - Congratulations!@");
+        if (num_remain == 0) {
+            printf("  None - Congratulations!@");
+        } else {
+        }
     }
     return 0;
 }

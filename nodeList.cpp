@@ -5,8 +5,17 @@
 #include "nodeList.h"
 #include "convertEngine.h"
 #include "CompileException.h"
+#include <iostream>
 
 extern ConvertEngine engine;
+
+void printLog(string str) {
+    cout << "[Log] " << str << endl;
+}
+
+void printError(string str) {
+    cerr << "[Error] " << str << endl;
+}
 
 AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction, llvm::StringRef VarName, llvm::Type* type) {
     IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
@@ -71,7 +80,16 @@ Value *calcOp(Value* left, Value* right, BinaryOperators op) {
 
 Value * Program::convertToCode() {
     puts("Entered convert");
+    if (globalArea == nullptr) {
+        printError( "globalArea pointer is nullptr");
+        return nullptr;
+    }
     this->globalArea->convertToCode();
+
+    if (mainFunc == nullptr) {
+        printError( "No main function found.");
+        return nullptr;
+    }
     return this->mainFunc->convertToCode();
 }
 

@@ -25,6 +25,7 @@ class GlobalArea;
 class ExprNode;
 class ClassDec;
 class PointerNode;
+class ArrayReference;
 
 typedef vector<Identifier*> IdentifierList;
 typedef vector<StatNode*>   StatList;
@@ -408,23 +409,34 @@ private:
     ClassBody *body;
 };
 
+enum AssignType {
+    ID_ASSIGN,
+    ARRAY_ASSIGN,
+//    CLASS_ASSIGN,
+//    POINTER_ASSIGN
+};
+
 // Node for assign statement
 // Example:
-//      left_expr = right_expr
-// Although left part is represented by an expression, the actual forms can only be as follows:
-//      name = right_expr
-//      name[expression] = right_expr
-//      name.name = right_expr
-//      *name = right_expr
-//      *name[expression] = right_expr
-//      *name.name = right_expr
-//      *(expression) = right_expr
+//      name = right_expr                   type = ID_ASSIGN
+//      name[expression] = right_expr       type = ARRAY_ASSIGN
+//      name.name = right_expr              type = CLASS_ASSIGN
+//      *name = right_expr                  type = POINTER_ASSIGN
+//      *name[expression] = right_expr      type = POINTER_ASSIGN
+//      *name.name = right_expr             type = POINTER_ASSIGN
+//      *(expression) = right_expr          type = POINTER_ASSIGN
 class AssignStat: public StatNode {
 public:
-    AssignStat(ExprNode *lexpr, ExprNode *rexpr): left_expr(lexpr), right_expr(rexpr) { }
-    Value* convertToCode() override;
+    AssignStat(Identifier *id, ExprNode *expr): id(id), expr(expr), type(ID_ASSIGN) { }
+    AssignStat(ArrayReference *arrayRef, ExprNode *expr): arrayRef(arrayRef), expr(expr), type(ARRAY_ASSIGN) { }
+//    AssignStat(Identifier *id, Identifier *cid, ExprNode *expr): id(id), childId(cid), expr(expr), type(CLASS_ASSIGN) { }
+//    AssignStat(PointerNode *pNode, ExprNode *expr): pNode(pNode), expr(expr), type(POINTER_ASSIGN) { }
+
 private:
-    ExprNode *left_expr, *right_expr;
+    Identifier *id{};
+    ArrayReference *arrayRef{};
+    ExprNode *expr;
+    AssignType type;
 };
 
 // Node for if statement

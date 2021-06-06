@@ -277,12 +277,7 @@ expression_list
 
 assign_statement
     : name '=' expression                                   { $$ = new AssignStat($1, $3); }
-    | name '[' expression ']' '=' expression                { $$ = new AssignStat($1, $3, $6); }
-    | name '.' name '=' expression                          { $$ = new AssignStat($1, $3, $5); }
-    | '*' name '=' expression                               { $$ = new AssignStat(new PointerNode($2), $4); }
-    | '*' name '[' expression ']' '=' expression            { $$ = new AssignStat(new PointerNode(new ArrayReference($2, $4)), $7); }
-    | '*' name '.' name '=' expression                      { $$ = new AssignStat(new PointerNode(new ClassRef($2, $4)), $6); }
-    | '*' '(' expression ')' '=' expression                 { $$ = new AssignStat(new PointerNode($3), $6); }
+    | name '[' expression ']' '=' expression                { $$ = new AssignStat(new ArrayReference($1, $3), $6); }
     ;
 
 name

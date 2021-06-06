@@ -366,14 +366,14 @@ public:
 class VarDecListNode: public StatNode {
 public:
     explicit VarDecListNode(VarDecList *varDecList): varDecList(varDecList) { }
-    virtual Value *convertToCode() { return nullptr; }
+    virtual Value *convertToCode();
     VarDecList *varDecList;
 };
 
 class ConstDecListNode: public StatNode {
 public:
     explicit ConstDecListNode(ConstDecList *constDecList): constDecList(constDecList) { }
-    virtual Value *convertToCode() { return nullptr; }
+    virtual Value *convertToCode();
     ConstDecList *constDecList;
 };
 

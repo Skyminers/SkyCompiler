@@ -60,13 +60,13 @@ public:
         layoutID = module->getDataLayout().getAllocaAddrSpace();
 
         // scan function
-        auto funcType = FunctionType::get(builder.getInt32Ty(), true);
+        vector<Type*> valuesType;
+        valuesType.push_back(builder.getInt8PtrTy());
+        auto funcType = FunctionType::get(builder.getInt32Ty(), makeArrayRef(valuesType), true);
         scan = Function::Create(funcType, Function::ExternalLinkage, Twine("scanf"), module);
         scan->setCallingConv(CallingConv::C);
 
         // print function
-        vector<Type*> valuesType;
-        valuesType.push_back(builder.getInt8PtrTy());
         funcType = FunctionType::get(builder.getInt32Ty(), makeArrayRef(valuesType), true);
         print = Function::Create(funcType, Function::ExternalLinkage, Twine("printf"), module);
         print->setCallingConv(CallingConv::C);
@@ -85,6 +85,7 @@ public:
      * */
     SkyArrayType* findArrayValue(string varName);
     Value* findVarByName(string varName);
+    Value* findVarByName(char* varName);
 
     /*
      * Below function is used to maintain function stack.

@@ -497,7 +497,7 @@ Value * SkyType::convertToCode() {
 }
 
 Value * FuncCall::callSysIO() {
-    auto func = engine.getModule()->getFunction("printf");
+    auto func = engine.getModule()->getFunction(id->name);
 
     vector<Value*> inputArgs;
     auto funcNeed = func->arg_begin();
@@ -515,14 +515,20 @@ Value * FuncCall::callSysIO() {
             funcNeed ++;
             continue;
         }
-        if (funcNeed->hasNonNullAttr()) {
-            auto * addr = engine.findVarByName(dynamic_cast<Identifier*>(it)->name);
-            inputArgs.push_back(addr);
-        } else {
-            inputArgs.push_back(it->convertToCode());
-        }
-        funcNeed ++;
+        inputArgs.push_back(it->convertToCode());
     }
     Value *ret = builder.CreateCall(func, inputArgs, "callFunc");
     return ret;
+}
+
+Value * VarDecListNode::convertToCode() {
+    for (auto &it : *varDecList) {
+        it->convertToCode();
+    }
+}
+
+Value * ConstDecListNode::convertToCode() {
+    for (auto &it : *constDecList) {
+        it->convertToCode();
+    }
 }

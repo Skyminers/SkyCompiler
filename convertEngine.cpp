@@ -36,6 +36,10 @@ Value* ConvertEngine::findVarByName(string varName) {
     return result;
 }
 
+Value* ConvertEngine::findVarByName(char *varName) {
+    return findVarByName(string(varName));
+}
+
 Function* ConvertEngine::askForFunction(string funcName) {
     auto func = module->getFunction(funcName);
     if(func == nullptr) throw FuncNotFound(funcName + " not found");

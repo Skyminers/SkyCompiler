@@ -57,7 +57,7 @@ Value *calcOp(Value* left, Value* right, BinaryOperators op) {
                 return builder.CreateSDiv(left, right, "divFloat");
             }
         case OP_EQ:
-            return builder.CreateICmpEQ(left, right, "equal");
+            return builder.CreateICmpEQ(builder.CreateTrunc(left, builder.getInt32Ty()), builder.CreateTrunc(right, builder.getInt32Ty()), "equal");
         case OP_NE:
             return builder.CreateICmpNE(left, right, "neq");
         case OP_GT:

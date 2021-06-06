@@ -30,24 +30,32 @@ Value *calcOp(Value* left, Value* right, BinaryOperators op) {
     switch (op) {
         case OP_PLUS:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFAdd(left, right, "addFloat");
+                return builder.CreateFAdd(builder.CreateTrunc(left, builder.getDoubleTy(), "Convert"),
+                                          builder.CreateTrunc(right, builder.getDoubleTy(), "Convert"), "addFloat");
             } else {
                 return builder.CreateAdd(left, right, "addInt");
             }
         case OP_MINUS:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFSub(left, right, "subFloat");
+                return builder.CreateFSub(builder.CreateTrunc(left, builder.getDoubleTy(), "Convert"),
+                                          builder.CreateTrunc(right, builder.getDoubleTy(), "Convert"), "subFloat");
             } else {
                 return builder.CreateSub(left, right, "subInt");
             }
         case OP_MUL:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFMul(left, right, "mulFloat");
+                return builder.CreateFMul(builder.CreateTrunc(left, builder.getDoubleTy(), "Convert"),
+                                          builder.CreateTrunc(right, builder.getDoubleTy(), "Convert"), "mulFloat");
             } else {
                 return builder.CreateMul(left, right, "mulInt");
             }
         case OP_DIV:
-            return builder.CreateSDiv(left, right, "divSigned");
+            if (floatFlag || doubleFlag) {
+                return builder.CreateFDiv(builder.CreateTrunc(left, builder.getDoubleTy(), "Convert"),
+                                          builder.CreateTrunc(right, builder.getDoubleTy(), "Convert"), "divSigned");
+            } else {
+                return builder.CreateSDiv(left, right, "divFloat");
+            }
         case OP_EQ:
             return builder.CreateICmpEQ(left, right, "equal");
         case OP_NE:
@@ -481,13 +489,13 @@ Value *WhileStat::convertToCode() {
 }
 
 Value *JumpStat::convertToCode() {
+    engine.flagIsReturn = true;
     switch ( type ) {
         case BREAK:
             return builder.CreateBr(engine.getCurBreakBlock());
         case CONTINUE:
             return builder.CreateBr(engine.getCurContinueBlock());
         case RETURN:
-            engine.flagIsReturn = true;
             if (retExpr != nullptr) {
                 return builder.CreateRet(retExpr->convertToCode());
             } else {

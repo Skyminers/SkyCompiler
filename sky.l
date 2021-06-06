@@ -89,6 +89,19 @@ using namespace std;
                                 return CHAR;    
                               }
 
+\'\\[nt0]\'                   {
+                                if (yytext[2] == 'n') {
+                                    yylval.cVal = '\n';
+                                }
+                                if (yytext[2] == 't') {
+                                    yylval.cVal = '\t';
+                                }
+                                if (yytext[2] == '0') {
+                                    yylval.cVal = '\0';
+                                }
+                                return CHAR;
+                              }
+
   /*Only lowercase true and false are allowed.*/
 "true"|"false"                {
                                 bool tmp;

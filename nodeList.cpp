@@ -292,7 +292,12 @@ Value *CompoundStat::convertToCode() {
 
 Value *AssignStat::convertToCode() {
     Value *res = nullptr;
-//    res = builder.CreateStore(right_expr->convertToCode(), ));
+    switch (type) {
+        case ID_ASSIGN:
+            return builder.CreateStore(expr->convertToCode(), engine.findVarByName(id->name));
+        case ARRAY_ASSIGN:
+            return builder.CreateStore(expr->convertToCode(), arrayRef->getValueI());
+    }
     return nullptr;
 }
 
@@ -379,6 +384,7 @@ Value *ForStat::convertToCode() {
     BasicBlock *condition = BasicBlock::Create(context, "condition", func);
     BasicBlock *loop = BasicBlock::Create(context, "loopCode", func);
     BasicBlock *breakLoop = BasicBlock::Create(context, "breakLoop", func);
+    engine.enterLoop(breakLoop, condition);
 
     // condition
     builder.CreateBr(condition);
@@ -398,6 +404,7 @@ Value *ForStat::convertToCode() {
     loop = builder.GetInsertBlock();
 
     builder.SetInsertPoint(breakLoop);
+    engine.exitLoop();
     return branch;
 }
 
@@ -406,6 +413,7 @@ Value *WhileStat::convertToCode() {
     BasicBlock * condition = BasicBlock::Create(context, "condition", func);
     BasicBlock * loop = BasicBlock::Create(context, "loop", func);
     BasicBlock * breakLoop = BasicBlock::Create(context, "breakLoop", func);
+    engine.enterLoop(breakLoop, condition);
 
     // condition
     builder.CreateBr(condition);
@@ -421,15 +429,22 @@ Value *WhileStat::convertToCode() {
     builder.CreateBr(condition);
 
     builder.SetInsertPoint(breakLoop);
+    engine.exitLoop();
     return branch;
 }
 
-Value *PointerNode::convertToCode() {
-
+Value *JumpStat::convertToCode() {
+    switch ( type ) {
+        case BREAK:
+            return builder.CreateBr(engine.getCurBreakBlock());
+        case CONTINUE:
+            return builder.CreateBr(engine.getCurContinueBlock());
+        case RETURN:
+            return builder.CreateRet(retExpr->convertToCode());
+    }
     return nullptr;
 }
 
-Value *JumpStat::convertToCode() {
-
-    return nullptr;
+Value *ReferenceNode::convertToCode() {
+    return engine.findVarByName(id->name);
 }

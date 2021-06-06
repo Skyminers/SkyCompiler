@@ -43,7 +43,8 @@ public:
 private:
     Function *main;
     stack<Function*> funcList;
-    vector<BasicBlock*> blockID;
+    vector<BasicBlock*> breakBlock;
+    vector<BasicBlock*> continueBlock;
 public:
     /*
      * ArrayType is constant var, which need start point and length.
@@ -51,8 +52,7 @@ public:
      * */
     map<string, SkyArrayType*> arrayMap;
     map<uint, string> ptrMap;
-    BasicBlock * breakBlock;
-    BasicBlock * continueBlock;
+
 
 public:
     ConvertEngine(){
@@ -101,7 +101,10 @@ public:
     Function* askForFunction(string funcName);
     void compileToFile(string fileName);
 
-
+    BasicBlock* getCurBreakBlock();
+    BasicBlock* getCurContinueBlock();
+    void enterLoop(BasicBlock* breakBlock, BasicBlock* continueBlock);
+    void exitLoop();
 };
 
 #endif //CONVERTENGINE_H

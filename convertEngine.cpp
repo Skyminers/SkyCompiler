@@ -58,6 +58,23 @@ Module *ConvertEngine::getModule() const {
     return module;
 }
 
+BasicBlock *ConvertEngine::getCurBreakBlock() {
+    return *breakBlock.rbegin();
+}
+
+BasicBlock *ConvertEngine::getCurContinueBlock() {
+    return *continueBlock.rbegin();
+}
+
+void ConvertEngine::enterLoop(BasicBlock* breakBlock, BasicBlock* continueBlock) {
+    this->breakBlock.push_back(breakBlock);
+    this->continueBlock.push_back(continueBlock);
+}
+
+void ConvertEngine::exitLoop() {
+    breakBlock.pop_back();
+    continueBlock.pop_back();
+}
 
 // Unit test
 int main() {

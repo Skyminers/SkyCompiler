@@ -437,6 +437,8 @@ private:
     ArrayReference *arrayRef{};
     ExprNode *expr;
     AssignType type;
+
+    Value *convertToCode();
 };
 
 // Node for if statement
@@ -589,6 +591,11 @@ public:
 // To be simple, we only parse one kind rule: &id
 class ReferenceNode: public ExprNode {
     ReferenceNode(Identifier *id): id(id) { }
+
+public:
+    Value *convertToCode() override;
+
+private:
     Identifier *id;
 };
 

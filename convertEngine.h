@@ -52,7 +52,7 @@ public:
      * */
     map<string, SkyArrayType*> arrayMap;
     map<uint, string> ptrMap;
-
+    bool flagIsReturn;
 
 public:
     ConvertEngine(){

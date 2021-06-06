@@ -384,18 +384,26 @@ Value *IfStat::convertToCode() {
     // then
     auto branch = builder.CreateCondBr(condValue, thenCond, elseCond);
     builder.SetInsertPoint(thenCond);
-    thenStat->convertToCode();
 
-    builder.CreateBr(common);
+    engine.flagIsReturn = false;
+    thenStat->convertToCode();
+    if (!engine.flagIsReturn) {
+        builder.CreateBr(common);
+    }
+    engine.flagIsReturn = false;
     thenCond = builder.GetInsertBlock();
 
     // else
     builder.SetInsertPoint(elseCond);
 
+    engine.flagIsReturn = false;
     if (elseStat != nullptr) {
         elseStat->convertToCode();
     }
-    builder.CreateBr(common);
+    if (!engine.flagIsReturn) {
+        builder.CreateBr(common);
+    }
+    engine.flagIsReturn = false;
     elseCond = builder.GetInsertBlock();
 
     builder.SetInsertPoint(common);
@@ -428,10 +436,14 @@ Value *ForStat::convertToCode() {
 
     // loop
     builder.SetInsertPoint(loop);
+    engine.flagIsReturn = false;
     body->convertToCode();
     Value * newVarValue = builder.CreateAdd(nowValue, stepValue); // add step
     builder.CreateStore(newVarValue, varValue);
-    builder.CreateBr(condition);
+    if (!engine.flagIsReturn) {
+        builder.CreateBr(condition);
+    }
+    engine.flagIsReturn = false;
     loop = builder.GetInsertBlock();
 
     builder.SetInsertPoint(breakLoop);
@@ -456,8 +468,12 @@ Value *WhileStat::convertToCode() {
 
     // loop
     builder.SetInsertPoint(loop);
+    engine.flagIsReturn = false;
     body->convertToCode();
-    builder.CreateBr(condition);
+    if (!engine.flagIsReturn) {
+        builder.CreateBr(condition);
+    }
+    engine.flagIsReturn = false;
 
     builder.SetInsertPoint(breakLoop);
     engine.exitLoop();
@@ -471,6 +487,7 @@ Value *JumpStat::convertToCode() {
         case CONTINUE:
             return builder.CreateBr(engine.getCurContinueBlock());
         case RETURN:
+            engine.flagIsReturn = true;
             if (retExpr != nullptr) {
                 return builder.CreateRet(retExpr->convertToCode());
             } else {

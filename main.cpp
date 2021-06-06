@@ -11,7 +11,7 @@ extern Program * root;
 extern ConvertEngine engine;
 extern FILE *yyin, *yyout;
 int main(){
-    yyin = fopen("test.sky", "r");
+    yyin = fopen("../test.sky", "r");
     yyparse();
     if (root == nullptr) return -1;
     root->convertToCode();

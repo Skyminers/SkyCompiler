@@ -177,8 +177,8 @@ main_func
     ;
 
 statement_list
-    : statement_list LF statement                           { $$ = $1; $$->push_back($3); }
-    | statement                                             { $$ = new StatList(); $$->push_back($1); }
+    : statement_list ';' statement                          { $$ = $1; $$->push_back($3); }
+    | statement ';'                                         { $$ = new StatList(); $$->push_back($1); }
     |                                                       { $$ = new StatList(); }
     ;
 

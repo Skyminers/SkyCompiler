@@ -14,6 +14,7 @@ using namespace std;
 %%
 
   /*the process of Lexical analysis*/
+[ \t\n]                       {  }
 "var"                         {return VAR;}  
 "let"                         {return LET;} 
 "new"                         {return NEW;}
@@ -80,7 +81,6 @@ using namespace std;
 ">="                          {return OPER_GE;}
 "=="                          {return OPER_EQ;}         
 "!="                          {return OPER_NE;}
-\n                            {return LF;}
 
 "//"[^\n]*                    { }
 

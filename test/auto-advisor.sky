@@ -71,12 +71,28 @@ func check(st: int) -> bool {
 
 func main() -> int {
     var i: int, j: int;
-    while (true) {
-        scanf(" %[^|]|", name);
-        credit = -1;
-        scanf("%d|", &credit);
-        if (credit == -1) { break; }
+    printf("!!@");
+    while (1 > 0) {
+        printf("!!@");
         var len: int, ch: char;
+        var scanfRet:int, fuyi:int;
+        scanfRet = scanf("%c", &ch);
+        printf("!!@");
+        printf("%c", ch);
+        fuyi = -1;
+        if (scanfRet == fuyi) { break; }
+        if (ch == '\n') {
+            scanfRet = scanf("%c", &ch);
+            if (scanfRet == fuyi) { break; }
+        }
+        len = 0;
+        while (ch != '|') {
+            name[len] = ch;
+            len = len + 1;
+            scanf("%c", &ch);
+        }
+        //printf("%s@", name);
+        scanf("%d|", &credit);
         len = 0;
         scanf("%c", &ch);
         while (ch != '|') {
@@ -118,11 +134,24 @@ func main() -> int {
     }
     var GPA: double;
     if (sum_attempt == 0) {
-        GPA = 0.0;
+        printf("GPA: 0.0@");
     } else {
-        GPA = sum_grade * 1.0 / sum_attempt;
+        //GPA = sum_grade * 1.0 / sum_attempt;
+        var aa: int, bb: int, cc: int;
+        aa = sum_grade / sum_attempt;
+        bb = (sum_grade % sum_attempt) * 10 / sum_attempt;
+        cc = (sum_grade % sum_attempt) * 10 % sum_attempt;
+        while (cc >= 10) { cc = cc / 10; }
+        if (cc > 5) {
+            bb = bb + 1;
+            if (bb == 10) {
+                aa = aa + 1;
+                bb = 0;
+            }
+        }
+        printf("GPA: %d.%d@", aa, bb);
     }
-    printf("GPA: %.1f@", GPA);
+    //printf("GPA: %.1f@", GPA);
     printf("Hours Attempted: %d@", sum_attempt);
     printf("Hours Completed: %d@", sum_complete);
     printf("Credits Remaining: %d@", sum_remain);

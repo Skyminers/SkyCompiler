@@ -438,14 +438,16 @@ Value *FuncCall::convertToCode() {
     // Get all params
     vector<Value*> inputArgs;
     auto funcNeed = func->arg_begin();
-    for (auto & it : *args) {
-        if (funcNeed->hasNonNullAttr()) { // Pass a addr to function
-            auto * addr = engine.findVarByName(dynamic_cast<Identifier*>(it)->name);
-            inputArgs.push_back(addr);
-        } else { // Pass only value to function
-            inputArgs.push_back(it->convertToCode());
+    if (args != nullptr) {
+        for (auto &it : *args) {
+            if (funcNeed->hasNonNullAttr()) {
+                auto *addr = engine.findVarByName(dynamic_cast<Identifier *>(it)->name);
+                inputArgs.push_back(addr);
+            } else {
+                inputArgs.push_back(it->convertToCode());
+            }
+            funcNeed++;
         }
-        funcNeed ++;
     }
 
     // Create Call sentences

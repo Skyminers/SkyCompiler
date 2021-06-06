@@ -17,7 +17,7 @@ func main() -> int {
         }
     }
     if (n_a != m_b) {
-        printf("Incompatible Dimensions\n");
+        printf("Incompatible Dimensions@");
         return 0;
     }
     var tmp: int;
@@ -29,7 +29,7 @@ func main() -> int {
             }
             printf("%10d", tmp);
         }
-        printf("\n");
+        printf("@");
     }
     return 0;
 }

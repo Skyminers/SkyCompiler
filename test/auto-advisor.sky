@@ -121,11 +121,11 @@ func main() -> int {
     } else {
         GPA = sum_grade * 1.0 / sum_attempt;
     }
-    printf("GPA: %.1f\n", GPA);
-    printf("Hours Attempted: %d\n", sum_attempt);
-    printf("Hours Completed: %d\n", sum_complete);
-    printf("Credits Remaining: %d\n", sum_remain);
-    printf("\nPossible Courses to Take Next\n");
+    printf("GPA: %.1f@", GPA);
+    printf("Hours Attempted: %d@", sum_attempt);
+    printf("Hours Completed: %d@", sum_complete);
+    printf("Credits Remaining: %d@", sum_remain);
+    printf("@Possible Courses to Take Next@");
     var i: int, j: int, num: int;
     num = 0;
     for i in [0, num_remain, 1] {
@@ -136,7 +136,7 @@ func main() -> int {
                 if (names_remain[i * 100 + j] == '\0') { break; }
                 printf("%c", names_remain[i * 100 + j]);
             }
-            printf("\n");
+            printf("@");
         }
     }
     if (num === 0) {

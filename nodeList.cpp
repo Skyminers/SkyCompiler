@@ -229,7 +229,7 @@ Constant* SkyType::Create() {
         vector<Constant *> vec;
         vec.resize(siz);
         for (int i = 0; i < siz; ++i) {
-            vec.push_back(arrayType->type->Create());
+            vec[i] = arrayType->type->Create();
         }
         auto arrType = ArrayType::get(toLLVMType(), siz);
         return ConstantArray::get(arrType, vec);

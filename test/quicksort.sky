@@ -28,7 +28,7 @@ func main() -> int {
     }
     qsort(1, n);
     for i in [0, n, 1] {
-        printf("%d\n", a[i]);
+        printf("%d@", a[i]);
     }
     return 0;
 }

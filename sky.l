@@ -123,7 +123,7 @@ using namespace std;
                                 return IDENTIFIER;
                               }
 
-\"(\\\"|[^\\\"])*\"           {
+\"(\\.|[^\\\"])*\"           {
                                 yylval.sVal = new char[yyleng-1];
                                 memcpy(yylval.sVal, yytext+1, strlen(yytext)-2);
                                 yylval.sVal[yyleng-2] = '\0';

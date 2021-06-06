@@ -273,6 +273,7 @@ number
     | '*' name                                              { $$=  new PointerNode($2); }
     | '*' '(' expression ')'                                { $$ = new PointerNode($3); }
     | '&' name                                              { $$ = new ReferenceNode($2); }
+    |
     ;
 
 expression_list

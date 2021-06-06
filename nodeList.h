@@ -612,10 +612,12 @@ public:
 class ReferenceNode: public ExprNode {
 public:
     ReferenceNode(Identifier *id): id(id) { }
+    ReferenceNode(ArrayReference *arrayRef): arrayRef(arrayRef) { }
     Value *convertToCode() override;
 
 private:
-    Identifier *id;
+    Identifier *id{};
+    ArrayReference *arrayRef{};
 };
 
 // GlobalArea can only do some definition

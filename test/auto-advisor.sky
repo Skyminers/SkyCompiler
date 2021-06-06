@@ -1,8 +1,8 @@
-var name: char[100], pre: char[1000], grade: char, credit: int;
+var name: char[100], pre: char[1000], grade: int, credit: int;
 var sum_attempt: int, sum_complete: int, sum_remain: int, sum_grade: int;
 var num_complete: int, num_remain: int;
-var names_complete: char[100 * 100], names_remain: char[100 * 100];
-var pres: char[100 * 1000];
+var names_complete: char[10000], names_remain: char[10000];
+var pres: char[100000];
 var pre_name: char[100];
 
 func check(st: int) -> bool {
@@ -70,6 +70,7 @@ func check(st: int) -> bool {
 }
 
 func main() -> int {
+    var i: int, j: int;
     while (true) {
         scanf(" %[^|]|", name);
         credit = -1;
@@ -126,7 +127,7 @@ func main() -> int {
     printf("Hours Completed: %d@", sum_complete);
     printf("Credits Remaining: %d@", sum_remain);
     printf("@Possible Courses to Take Next@");
-    var i: int, j: int, num: int;
+    var num: int;
     num = 0;
     for i in [0, num_remain, 1] {
         if (check(i * 1000)) {
@@ -139,7 +140,7 @@ func main() -> int {
             printf("@");
         }
     }
-    if (num === 0) {
+    if (num == 0) {
         printf("  None - Congratulations!");
     }
     return 0;

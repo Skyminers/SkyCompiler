@@ -439,7 +439,7 @@ static yyconst flex_int16_t yy_base[173] =
       197,  197,  170,  169,  197,   33,  197,   42,   44,  197,
       197,   44,  168,   45,    0,  197,  197,  167,  158,   28,
        37,   38,  147,   44,   27,  151,  154,  149,  148,   41,
-      151,  144,  197,   37,  197,  197,   75,  197,  178,  197,
+      151,  144,  197,   37,  197,  197,   75,  197,  176,  197,
       197,  197,  172,  197,  197,  197,  197,    0,  197,   76,
        81,  197,  197,  197,  197,  197,    0,  197,   48,  135,
       142,  145,  144,  132,  133,  125,  126,  130,  126,  124,
@@ -462,7 +462,7 @@ static yyconst flex_int16_t yy_def[173] =
       168,  168,  168,  168,  168,  168,  168,  168,  168,  168,
       168,  168,  168,  168,  171,  168,  168,  168,  171,  171,
       171,  171,  171,  171,  171,  171,  171,  171,  171,  171,
-      171,  171,  168,  168,  168,  168,  169,  168,  169,  168,
+      171,  171,  168,  168,  168,  168,  169,  168,  168,  168,
       168,  168,  168,  168,  168,  168,  168,  172,  168,  168,
       168,  168,  168,  168,  168,  168,  171,  168,  171,  171,
       171,  171,  171,  171,  171,  171,  171,  171,  171,  171,
@@ -500,7 +500,7 @@ static yyconst flex_int16_t yy_nxt[251] =
       128,  127,  126,  125,  124,  123,  122,  121,  119,  118,
       117,  116,  115,  114,  113,  112,  111,  110,  109,  108,
       107,  106,  105,  104,  103,  102,  101,  100,   99,   94,
-      168,   91,   90,   87,   86,   85,   84,   77,   69,   68,
+       47,   91,   90,   87,   86,   85,   84,   77,   69,   68,
        64,   55,   54,   50,   46,  168,    3,  168,  168,  168,
 
       168,  168,  168,  168,  168,  168,  168,  168,  168,  168,
@@ -1209,31 +1209,35 @@ YY_RULE_SETUP
 {
                                 yylval.sVal = new char[yyleng+1];
                                 strcpy(yylval.sVal, yytext);
+                                //printf("%s\n", yytext);
                                 return MAIN;
                               }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 118 "sky.l"
+#line 119 "sky.l"
 { 
                                 yylval.sVal = new char[yyleng+1];
                                 strcpy(yylval.sVal, yytext);
+                                //printf("%s\n", yytext);
                                 return IDENTIFIER;
                               }
 	YY_BREAK
 case 73:
 /* rule 73 can match eol */
 YY_RULE_SETUP
-#line 124 "sky.l"
+#line 126 "sky.l"
 {
-                                yylval.sVal = new char[yyleng+1];
-                                strcpy(yylval.sVal, yytext);
+                                yylval.sVal = new char[yyleng-1];
+                                memcpy(yylval.sVal, yytext+1, strlen(yytext)-2);
+                                yylval.sVal[yyleng-2] = '\0';
+                                //printf("%s\n", yylval.sVal);
                                 return STRING;
                               }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 130 "sky.l"
+#line 134 "sky.l"
 { 
                                 double tmp;
                                 sscanf(yytext, "%lf", &tmp);
@@ -1243,7 +1247,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 137 "sky.l"
+#line 141 "sky.l"
 { 
                                 float tmp;
                                 sscanf(yytext, "%f[fF]", &tmp);
@@ -1253,7 +1257,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 144 "sky.l"
+#line 148 "sky.l"
 {
                                 int tmp;                                                          
                                 sscanf(yytext, "%d", &tmp);
@@ -1263,10 +1267,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 151 "sky.l"
+#line 155 "sky.l"
 ECHO;
 	YY_BREAK
-#line 1270 "lex.yy.c"
+#line 1274 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2263,6 +2267,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 151 "sky.l"
+#line 155 "sky.l"
 
 

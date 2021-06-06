@@ -576,7 +576,7 @@ private:
 
 // Node for function call
 // It can be an expression or a statement, so it is inherited from both ExprNode and StatNode
-class FuncCall: public ExprNode, StatNode {
+class FuncCall: public ExprNode, public StatNode {
 public:
     FuncCall(Identifier *id, ExprList *args): id(id), args(args) { }
 

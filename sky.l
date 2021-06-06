@@ -112,18 +112,22 @@ using namespace std;
 "main"                        {
                                 yylval.sVal = new char[yyleng+1];
                                 strcpy(yylval.sVal, yytext);
+                                //printf("%s\n", yytext);
                                 return MAIN;
                               }
 
 [a-zA-Z_][a-zA-Z0-9_]*        { 
                                 yylval.sVal = new char[yyleng+1];
                                 strcpy(yylval.sVal, yytext);
+                                //printf("%s\n", yytext);
                                 return IDENTIFIER;
                               }
 
-\"(\\.|[^\\"])*\"             {
-                                yylval.sVal = new char[yyleng+1];
-                                strcpy(yylval.sVal, yytext);
+\"(\\\"|[^\\\"])*\"           {
+                                yylval.sVal = new char[yyleng-1];
+                                memcpy(yylval.sVal, yytext+1, strlen(yytext)-2);
+                                yylval.sVal[yyleng-2] = '\0';
+                                //printf("%s\n", yylval.sVal);
                                 return STRING;
                               }
 

@@ -1,5 +1,5 @@
-
+var i:int;
 func main() -> int {
-    printf("233");
+
     return 0;
 }

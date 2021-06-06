@@ -153,7 +153,7 @@ Value *SkyCharPointer::convertToCode() {
     vector<Constant *> vec;
     vec.resize(siz);
     for (int i = 0; i < siz; ++i) {
-        vec.push_back(builder.getInt8(*(p + i)));
+        vec[i] = builder.getInt8(*(p + i));
     }
     auto arrType = ArrayType::get(builder.getInt8Ty(), siz);
     return ConstantArray::get(arrType, vec);

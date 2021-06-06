@@ -100,8 +100,8 @@ program
     ;
 
 global_area
-    : global_area const_declaration                         { $$ = $1; $$->addConstDec($2->constDecList); }
-    | global_area var_declaration                           { $$ = $1; $$->addVarDec($2->varDecList); }
+    : global_area const_declaration ';'                     { $$ = $1; $$->addConstDec($2->constDecList); }
+    | global_area var_declaration ';'                       { $$ = $1; $$->addVarDec($2->varDecList); }
     | global_area func_declaration                          { $$ = $1; $$->addFuncDec($2); }
     | global_area class_declaration                         { $$ = $1; $$->addClassDec($2); }
     |                                                       { $$ = new GlobalArea(); }
@@ -177,8 +177,7 @@ main_func
     ;
 
 statement_list
-    : statement_list ';' statement                          { $$ = $1; $$->push_back($3); }
-    | statement ';'                                         { $$ = new StatList(); $$->push_back($1); }
+    : statement_list statement                              { $$ = $1; $$->push_back($2); }
     |                                                       { $$ = new StatList(); }
     ;
 
@@ -186,10 +185,11 @@ statement
     : compound_statement                                    { $$ = $1; }
     | branch_statement                                      { $$ = $1; }
     | for_statement                                         { $$ = $1; }
-    | jump_statement                                        { $$ = $1; }
-    | assign_statement                                      { $$ = $1; }
-    | var_declaration                                       { $$ = $1; }
-    | const_declaration                                     { $$ = $1; }
+    | jump_statement ';'                                    { $$ = $1; }
+    | assign_statement ';'                                  { $$ = $1; }
+    | var_declaration ';'                                   { $$ = $1; }
+    | const_declaration ';'                                 { $$ = $1; }
+    | name '(' expression_list ')' ';'                      { $$ = new FuncCall($1, $3); }
     ;
 
 compound_statement

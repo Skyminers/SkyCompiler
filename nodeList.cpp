@@ -264,13 +264,6 @@ Value * FuncDec::convertToCode() {
 
     body->convertToCode();
 
-    if ( retType->type != SkyTypes::SKY_VOID ) {
-        auto retValue = id->convertToCode();
-        builder.CreateRet(retValue);
-    } else {
-        builder.CreateRetVoid();
-    }
-
     engine.exitFunction();
     if (engine.funcStackSize()) {
         auto nowFunc = engine.nowFunction();

@@ -10,8 +10,8 @@ IF(APPLE)
 
 ENDIF()
 
-add_executable(ConvertEngineTest
-        convertEngine.cpp nodeList.cpp)
+#add_executable(ConvertEngineTest
+#        convertEngine.cpp nodeList.cpp)
 
 add_executable(SkyCompiler
-        main.cpp nodeList.cpp)
+        main.cpp nodeList.cpp convertEngine.cpp lex.yy.cpp sky.tab.cpp)

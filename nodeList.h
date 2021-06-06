@@ -626,13 +626,21 @@ public:
         for (auto & constDec : *cd) {
             constDec->setGlobal();
         }
-        constDecList->insert(constDecList->end(), cd->begin(), cd->end());
+        if (constDecList != nullptr) {
+            constDecList->insert(constDecList->end(), cd->begin(), cd->end());
+        } else {
+            constDecList = cd;
+        }
     }
     void addVarDec(VarDecList *vd) {
         for (auto & varDec : *vd) {
             varDec->setGlobal();
         }
-        varDecList->insert(varDecList->end(), vd->begin(), vd->end());
+        if (varDecList != nullptr) {
+            varDecList->insert(varDecList->end(), vd->begin(), vd->end());
+        } else {
+            varDecList = vd;
+        }
     }
     void addFuncDec(FuncDec *fd) {
         funcDecList->push_back(fd);

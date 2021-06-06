@@ -16,7 +16,7 @@ extern int yylex();
     float fVal;
     double dVal;
     char cVal;
-    string sVal;
+    char* sVal;
     bool bVal;
     Program *program;
     GlobalArea *globalArea;
@@ -41,15 +41,19 @@ extern int yylex();
     ClassBody *classBody;
     FuncDecList *funcDecList;
     StatNode *statement;
+    VarDecListNode *varDecListNode;
+    ConstDecListNode *constDecListNode;
 }
 
 %type<program>                          program
 %type<globalArea>                       global_area
 %type<constDec>                         const_expr
-%type<constDecList>                     const_declaration const_list
+%type<constDecList>                     const_list
+%type<constDecListNode>                 const_declaration
 %type<constValue>                       const_value
 %type<varDec>                           var_expr
-%type<varDecList>                       var_declaration var_list
+%type<varDecList>                       var_list
+%type<varDecListNode>                   var_declaration
 %type<skyType>                          type_declaration
 %type<skyVarType>                       var_type
 %type<skyArrayType>                     array_type_declaration
@@ -71,14 +75,14 @@ extern int yylex();
 %token<fVal> FLOAT
 %token<dVal> DOUBLE
 %token<cVal> CHAR
-%token<sVal> STRING IDENTIFIER
+%token<sVal> STRING IDENTIFIER MAIN INIT DEL
 %token<bVal> BOOLEAN
 
-%token  MAIN PRINT SCAN
+%token  PRINT SCAN
         VAR LET NEW DELETE
         FUNCTION JUMP_BREAK JUMP_CONTINUE JUMP_RETURN
         IF ELSE FOR WHILE IN
-        CLASS INIT DEL THIS
+        CLASS THIS
         TYPE_INT TYPE_INT_POINTER TYPE_INT_64 TYPE_INT_64_POINTER
         TYPE_CHAR TYPE_CHAR_POINTER
         TYPE_FLOAT TYPE_FLOAT_POINTER TYPE_DOUBLE TYPE_DOUBLE_POINTER
@@ -95,15 +99,15 @@ program
     ;
 
 global_area
-    : global_area const_declaration                         { $$ = $1; $$->addConstDec($2); }
-    | global_area var_declaration                           { $$ = $1; $$->addVarDec($2); }
+    : global_area const_declaration                         { $$ = $1; $$->addConstDec($2->constDecList); }
+    | global_area var_declaration                           { $$ = $1; $$->addVarDec($2->varDecList); }
     | global_area func_declaration                          { $$ = $1; $$->addFuncDec($2); }
     | global_area class_declaration                         { $$ = $1; $$->addClassDec($2); }
     |                                                       { $$ = new GlobalArea(); }
     ;
 
 const_declaration
-    : LET const_list                                        { $$ = $2; }
+    : LET const_list                                        { $$ = new ConstDecListNode($2); }
     ;
 
 const_list
@@ -125,7 +129,7 @@ const_value
     ;
 
 var_declaration
-    : VAR var_list                                          { $$ = $2; }
+    : VAR var_list                                          { $$ = new VarDecListNode($2); }
     ;
 
 var_list
@@ -164,11 +168,11 @@ var_type
 
 func_declaration
     : FUNCTION name '(' var_list ')' compound_statement     { $$ = new FuncDec($2, $4, $6); }
-    | FUNCTION name '(' var_list ')' OPER_PTR var_type compound_statement     { $$ = new FuncDec($2, $4, $7, $8); }
+    | FUNCTION name '(' var_list ')' OPER_PTR var_type compound_statement     { $$ = new FuncDec($2, $4, new SkyType($7), $8); }
     ;
 
 main_func
-    : FUNCTION MAIN '(' ')' OPER_PTR TYPE_INT compound_statement     { $$ = new FuncDec(new Identifier(MAIN), nullptr, new SkyVarType(SkyVarType::SKY_INT), $7); }
+    : FUNCTION MAIN '(' ')' OPER_PTR TYPE_INT compound_statement     { $$ = new FuncDec(new Identifier($2), nullptr, new SkyType(new SkyVarType(SkyVarType::SKY_INT)), $7); }
     ;
 
 statement_list
@@ -181,7 +185,6 @@ statement
     : compound_statement                                    { $$ = $1; }
     | branch_statement                                      { $$ = $1; }
     | for_statement                                         { $$ = $1; }
-    | expression                                            { $$ = $1; }
     | jump_statement                                        { $$ = $1; }
     | assign_statement                                      { $$ = $1; }
     | var_declaration                                       { $$ = $1; }
@@ -203,29 +206,29 @@ for_statement
     ;
 
 jump_statement
-    : JUMP_BREAK                                                 { $$ = new JumpStat(TypeOfJump::BREAK, nullptr); }
-    | JUMP_CONTINUE                                              { $$ = new JumpStat(TypeOfJump::CONTINUE, nullptr); }
-    | JUMP_RETURN                                                { $$ = new JumpStat(TypeOfJump::RETURN, nullptr); }
-    | JUMP_RETURN expression                                     { $$ = new JumpStat(TypeOfJump::RETURN, $2); }
+    : JUMP_BREAK                                             { $$ = new JumpStat(TypeOfJump::BREAK, nullptr); }
+    | JUMP_CONTINUE                                          { $$ = new JumpStat(TypeOfJump::CONTINUE, nullptr); }
+    | JUMP_RETURN                                            { $$ = new JumpStat(TypeOfJump::RETURN, nullptr); }
+    | JUMP_RETURN expression                                 { $$ = new JumpStat(TypeOfJump::RETURN, $2); }
     ;
 
 expression
-    : expression OPER_OR expression_or                        { $$ = new BinaryExpr($1, BinaryOperators::OP_OR, $3); }
+    : expression OPER_OR expression_or                      { $$ = new BinaryExpr($1, BinaryOperators::OP_OR, $3); }
     | expression_or                                         { $$ = $1; }
     ;
 
 expression_or
-    : expression_or OPER_AND expression_and                   { $$ = new BinaryExpr($1, BinaryOperators::OP_AND, $3); }
+    : expression_or OPER_AND expression_and                 { $$ = new BinaryExpr($1, BinaryOperators::OP_AND, $3); }
     | expression_and                                        { $$ = $1; }
     ;
 
 expression_and
-    : expression_and OPER_EQ expr                             { $$ = new BinaryExpr($1, BinaryOperators::OP_EQ, $3); }
-    | expression_and OPER_NE expr                             { $$ = new BinaryExpr($1, BinaryOperators::OP_NE, $3); }
-    | expression_and OPER_GT expr                             { $$ = new BinaryExpr($1, BinaryOperators::OP_GT, $3); }
-    | expression_and OPER_LT expr                             { $$ = new BinaryExpr($1, BinaryOperators::OP_LT, $3); }
-    | expression_and OPER_GE expr                             { $$ = new BinaryExpr($1, BinaryOperators::OP_GE, $3); }
-    | expression_and OPER_LE expr                             { $$ = new BinaryExpr($1, BinaryOperators::OP_LE, $3); }
+    : expression_and OPER_EQ expr                           { $$ = new BinaryExpr($1, BinaryOperators::OP_EQ, $3); }
+    | expression_and OPER_NE expr                           { $$ = new BinaryExpr($1, BinaryOperators::OP_NE, $3); }
+    | expression_and OPER_GT expr                           { $$ = new BinaryExpr($1, BinaryOperators::OP_GT, $3); }
+    | expression_and OPER_LT expr                           { $$ = new BinaryExpr($1, BinaryOperators::OP_LT, $3); }
+    | expression_and OPER_GE expr                           { $$ = new BinaryExpr($1, BinaryOperators::OP_GE, $3); }
+    | expression_and OPER_LE expr                           { $$ = new BinaryExpr($1, BinaryOperators::OP_LE, $3); }
     | expr                                                  { $$ = $1; }
     ;
 
@@ -243,14 +246,14 @@ expr_shift
 
 term
     : term '*' factor                                       { $$ = new BinaryExpr($1, BinaryOperators::OP_MUL, $3); }
-    | term OPER_DIV factor                                    { $$ = new BinaryExpr($1, BinaryOperators::OP_DIV, $3); }
-    | term OPER_MOD factor                                    { $$ = new BinaryExpr($1, BinaryOperators::OP_MOD, $3); }
+    | term OPER_DIV factor                                  { $$ = new BinaryExpr($1, BinaryOperators::OP_DIV, $3); }
+    | term OPER_MOD factor                                  { $$ = new BinaryExpr($1, BinaryOperators::OP_MOD, $3); }
     | factor                                                { $$ = $1; }
     ;
 
 factor
-    : OPER_MINUS factor                                       { $$ = new BinaryExpr(new Integer(0), BinaryOperators::OP_MINUS, $2); }
-    | OPER_NOT factor                                         { $$ = new BinaryExpr(new Boolean(true), BinaryOperators::OP_XOR, $2); }
+    : OPER_MINUS factor                                     { $$ = new BinaryExpr(new SkyInt(0), BinaryOperators::OP_MINUS, $2); }
+    | OPER_NOT factor                                       { $$ = new BinaryExpr(new SkyBool(true), BinaryOperators::OP_XOR, $2); }
     | number                                                { $$ = $1; }
     ;
 
@@ -298,11 +301,11 @@ class_body
     ;
 
 class_init
-    : FUNCTION INIT '(' var_list ')' OPER_PTR var_type compound_statement     { $$ = new FuncDec(new Identifier(INIT), $4, $7, $8); }
+    : FUNCTION INIT '(' var_list ')' OPER_PTR var_type compound_statement     { $$ = new FuncDec(new Identifier($2), $4, new SkyType($7), $8); }
     ;
 
 class_del
-    : FUNCTION DEL '(' var_list ')' OPER_PTR var_type compound_statement      { $$ = new FuncDec(new Identifier(DEL), $4, $7, $8); }
+    : FUNCTION DEL '(' var_list ')' OPER_PTR var_type compound_statement      { $$ = new FuncDec(new Identifier($2), $4, new SkyType($7), $8); }
     ;
 
 func_declaration_list

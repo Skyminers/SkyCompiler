@@ -236,12 +236,14 @@ private:
 // Actually the value.sVal points to a string
 class SkyCharPointer: public ConstValue {
 public:
-    explicit SkyCharPointer(const string& v) {
-        value.sVal = new char[v.size() + 1];
-        memcpy(value.sVal, v.c_str(), sizeof(char) * v.size());
+    explicit SkyCharPointer(char* v) {
+        value.sVal = v;
     }
     SkyVarType getType() override {
         return SKY_CHAR_POINTER;
+    }
+    ConstValue *operator-() override {
+        return new SkyCharPointer(nullptr);
     }
     ConstValueUnion getValue() override {
         return value;
@@ -310,11 +312,11 @@ public:
 // In human terms, it can be seen as the name of something(variable, function, class, const, ...)
 class Identifier: public ExprNode {
 public:
-    explicit Identifier(string name): name(std::move(name)) { }
+    explicit Identifier(char* name): name(name) { }
 
     Value *convertToCode() override;
 
-    string name;
+    char* name;
 };
 
 // Node for variable declaration
@@ -362,6 +364,20 @@ public:
     bool global;        // whether is the global const
 };
 
+class VarDecListNode: public StatNode {
+public:
+    explicit VarDecListNode(VarDecList *varDecList): varDecList(varDecList) { }
+    virtual Value *convertToCode() { return nullptr; }
+    VarDecList *varDecList;
+};
+
+class ConstDecListNode: public StatNode {
+public:
+    explicit ConstDecListNode(ConstDecList *constDecList): constDecList(constDecList) { }
+    virtual Value *convertToCode() { return nullptr; }
+    ConstDecList *constDecList;
+};
+
 // Node for function declaration
 // Example:
 //      func func_name(paraList) compound_statement      (retType = SKY_VOID)
@@ -390,6 +406,7 @@ private:
 class ClassBody: public StatNode {
 public:
     ClassBody(FuncDec *init, FuncDec *del, FuncDecList *funcList): initFunc(init), delFunc(del), funcList(funcList) { }
+    virtual Value *convertToCode() { return nullptr; }
 
 private:
     FuncDec *initFunc, *delFunc;
@@ -403,6 +420,7 @@ private:
 class ClassDec: public StatNode {
 public:
     ClassDec(Identifier *name, Identifier *father, ClassBody *body): name(name), father(father), body(body) { }
+    virtual Value *convertToCode() { return nullptr; }
 
 private:
     Identifier *name, *father; // father can be nullptr
@@ -551,6 +569,7 @@ private:
 class ClassRef: public ExprNode {
 public:
     ClassRef(Identifier *id, Identifier *childId): id(id), childId(childId) { }
+    virtual Value *convertToCode() { return nullptr; }
 
 private:
     Identifier *id, *childId;   // id: className,  childId: classMemberName
@@ -590,9 +609,8 @@ public:
 // Node for Reference
 // To be simple, we only parse one kind rule: &id
 class ReferenceNode: public ExprNode {
-    ReferenceNode(Identifier *id): id(id) { }
-
 public:
+    ReferenceNode(Identifier *id): id(id) { }
     Value *convertToCode() override;
 
 private:

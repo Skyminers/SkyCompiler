@@ -12,7 +12,6 @@ using namespace std;
 %%
 
   /*the process of Lexical analysis*/
-"main"                        {return MAIN;}
 "var"                         {return VAR;}  
 "let"                         {return LET;} 
 "new"                         {return NEW;}
@@ -27,8 +26,6 @@ using namespace std;
 "continue"                    {return JUMP_CONTINUE;}
 "break"                       {return JUMP_BREAK;}
 "class"                       {return CLASS;}
-"__init__"                    {return INIT;}         /*构造函数*/
-"__del__"                     {return DEL;}          /*析构函数*/
 "this"                        {return THIS;}         /*自身指针*/
 
 "int"                         {return TYPE_INT;}
@@ -85,8 +82,6 @@ using namespace std;
 
 "//"[^\n]*                    { }
 
-"/*"			              { comment(); }
-
 \'.\'                         {
                                 yylval.cVal = yytext[1];
                                 return CHAR;    
@@ -100,13 +95,33 @@ using namespace std;
                                 return BOOLEAN;
                               }
 
+"__init__"                    {
+                                yylval.sVal = new char[yyleng+1];
+                                strcpy(yylval.sVal, yytext);
+                                return INIT;
+                              }
+
+"__del__"                     {
+                                yylval.sVal = new char[yyleng+1];
+                                strcpy(yylval.sVal, yytext);
+                                return DEL;
+                              }
+
+"main"                        {
+                                yylval.sVal = new char[yyleng+1];
+                                strcpy(yylval.sVal, yytext);
+                                return MAIN;
+                              }
+
 [a-zA-Z_][a-zA-Z0-9_]*        { 
-                                yylval.sVal = new std::string(yytext, yyleng);
+                                yylval.sVal = new char[yyleng+1];
+                                strcpy(yylval.sVal, yytext);
                                 return IDENTIFIER;
                               }
 
 \"(\\.|[^\\"])*\"             {
-                                yylval.sVal = new std::string(yytext, yyleng);
+                                yylval.sVal = new char[yyleng+1];
+                                strcpy(yylval.sVal, yytext);
                                 return STRING;
                               }
 
@@ -136,17 +151,6 @@ using namespace std;
 int yyerror(const char *s){
   fprintf(stderr, "error : %s \n", s);
   return 0;
-}
-
-comment() {
-	char c, c1;
-loop:
-	while ((c = input()) != '*' && c != 0) putchar(c);
-	if ((c1 = input()) != '/' && c != 0) {
-		unput(c1);
-		goto loop;
-	}
-	if (c != 0) putchar(c1);
 }
 
 int main(){

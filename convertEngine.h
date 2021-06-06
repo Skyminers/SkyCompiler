@@ -92,7 +92,8 @@ public:
      * - enterFunction : enter a new function (this func should be called when you call a new function)
      * - exitFunction : exit current function (this func should be called when you meet return in function)
      * */
-    Function* nowFunction(){ return funcList.top();}
+    int funcStackSize() {return funcList.size();}
+    Function* nowFunction() { return funcList.top();}
     void enterFunction(Function* func){ funcList.push(func);}
     void exitFunction(){ funcList.pop(); }
 

@@ -94,14 +94,23 @@ Value * Program::convertToCode() {
 }
 
 Value * GlobalArea:: convertToCode() {
-    for(auto &it: *constDecList){
-        it->convertToCode();
+    if (constDecList != nullptr) {
+        printLog("Construct const declaration");
+        for (auto &it: *constDecList) {
+            it->convertToCode();
+        }
     }
-    for(auto &it: *varDecList){
-        it->convertToCode();
+    if (varDecList != nullptr) {
+        printLog("Construct var declaration");
+        for (auto &it: *varDecList) {
+            it->convertToCode();
+        }
     }
-    for(auto &it: *funcDecList){
-        it->convertToCode();
+    if (funcDecList != nullptr) {
+        printLog("Construct function declaration");
+        for (auto &it: *funcDecList) {
+            it->convertToCode();
+        }
     }
 //    for(auto &it: *classDecList){
 //        it->convertToCode();
@@ -229,8 +238,10 @@ Constant* SkyType::Create() {
 
 Value * FuncDec::convertToCode() {
     vector<Type*> args;
-    for (auto &it: *paraList) {
-        args.push_back(it->type->toLLVMType());
+    if (paraList != nullptr) {
+        for (auto &it: *paraList) {
+            args.push_back(it->type->toLLVMType());
+        }
     }
     auto funcType = FunctionType::get(retType->toLLVMType(), args, false);
     auto func = Function::Create(funcType, GlobalValue::ExternalLinkage, id->name, engine.getModule());
@@ -240,9 +251,11 @@ Value * FuncDec::convertToCode() {
 
     // calc params
     auto iterToPara = func->arg_begin();
-    for (auto &it: *paraList) {
-        auto mem = CreateEntryBlockAlloca(func, it->id->name, it->type->toLLVMType());
-        builder.CreateStore(iterToPara++,  mem);
+    if (paraList != nullptr) {
+        for (auto &it: *paraList) {
+            auto mem = CreateEntryBlockAlloca(func, it->id->name, it->type->toLLVMType());
+            builder.CreateStore(iterToPara++, mem);
+        }
     }
     Value * ret = nullptr;
     if ( retType->type != SkyTypes::SKY_VOID ){
@@ -259,7 +272,10 @@ Value * FuncDec::convertToCode() {
     }
 
     engine.exitFunction();
-    builder.SetInsertPoint(&(engine.nowFunction())->getBasicBlockList().back());
+    if (engine.funcStackSize()) {
+        auto nowFunc = engine.nowFunction();
+        builder.SetInsertPoint(&(nowFunc->getBasicBlockList().back()));
+    }
     return func;
 }
 

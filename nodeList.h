@@ -582,6 +582,8 @@ public:
 
     Value *convertToCode() override;
 
+    Value *callSysIO();
+
 private:
     Identifier *id;     // the function name
     ExprList *args;     // the arguments of the function

@@ -353,6 +353,9 @@ Value *FuncCall::convertToCode() {
     if (func == nullptr) {
         throw FuncNotFound(*(new string(id->name)) + " not found");
     }
+    if (strcmp(id->name, "printf") == 0 || strcmp(id->name, "scanf") == 0) {
+        return callSysIO();
+    }
     vector<Value*> inputArgs;
     auto funcNeed = func->arg_begin();
     for (auto & it : *args) {
@@ -491,4 +494,35 @@ Value * SkyArrayType::convertToCode() {
 
 Value * SkyType::convertToCode() {
     return nullptr;
+}
+
+Value * FuncCall::callSysIO() {
+    auto func = engine.getModule()->getFunction("printf");
+
+    vector<Value*> inputArgs;
+    auto funcNeed = func->arg_begin();
+    bool flag = false;
+    for (auto & it : *args) {
+        if (!flag) {
+            char* p = dynamic_cast<SkyCharPointer*>(it)->getValue().sVal;
+            auto formatConst = llvm::ConstantDataArray::getString(context, p);
+            auto formatStrVar = new llvm::GlobalVariable(*(engine.getModule()), llvm::ArrayType::get(builder.getInt8Ty(), strlen(p) + 1), true, llvm::GlobalValue::ExternalLinkage, formatConst, "printfStr");
+            auto zero = llvm::Constant::getNullValue(builder.getInt32Ty());
+            Constant* indices[] = {zero, zero};
+            auto ptr = ConstantExpr::getGetElementPtr(formatStrVar->getType()->getElementType(), formatStrVar, indices);
+            inputArgs.push_back(ptr);
+            flag = true;
+            funcNeed ++;
+            continue;
+        }
+        if (funcNeed->hasNonNullAttr()) {
+            auto * addr = engine.findVarByName(dynamic_cast<Identifier*>(it)->name);
+            inputArgs.push_back(addr);
+        } else {
+            inputArgs.push_back(it->convertToCode());
+        }
+        funcNeed ++;
+    }
+    Value *ret = builder.CreateCall(func, inputArgs, "callFunc");
+    return ret;
 }

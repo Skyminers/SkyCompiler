@@ -30,29 +30,29 @@ Value *calcOp(Value* left, Value* right, BinaryOperators op) {
     switch (op) {
         case OP_PLUS:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFAdd(builder.CreateTrunc(left, builder.getDoubleTy(), "Convert"),
-                                          builder.CreateTrunc(right, builder.getDoubleTy(), "Convert"), "addFloat");
+                return builder.CreateFAdd(builder.CreateFPTrunc(left, builder.getDoubleTy(), "Convert"),
+                                          builder.CreateFPTrunc(right, builder.getDoubleTy(), "Convert"), "addFloat");
             } else {
                 return builder.CreateAdd(left, right, "addInt");
             }
         case OP_MINUS:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFSub(builder.CreateTrunc(left, builder.getDoubleTy(), "Convert"),
-                                          builder.CreateTrunc(right, builder.getDoubleTy(), "Convert"), "subFloat");
+                return builder.CreateFSub(builder.CreateFPTrunc(left, builder.getDoubleTy(), "Convert"),
+                                          builder.CreateFPTrunc(right, builder.getDoubleTy(), "Convert"), "subFloat");
             } else {
                 return builder.CreateSub(left, right, "subInt");
             }
         case OP_MUL:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFMul(builder.CreateTrunc(left, builder.getDoubleTy(), "Convert"),
-                                          builder.CreateTrunc(right, builder.getDoubleTy(), "Convert"), "mulFloat");
+                return builder.CreateFMul(builder.CreateFPTrunc(left, builder.getDoubleTy(), "Convert"),
+                                          builder.CreateFPTrunc(right, builder.getDoubleTy(), "Convert"), "mulFloat");
             } else {
                 return builder.CreateMul(left, right, "mulInt");
             }
         case OP_DIV:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFDiv(builder.CreateTrunc(left, builder.getDoubleTy(), "Convert"),
-                                          builder.CreateTrunc(right, builder.getDoubleTy(), "Convert"), "divSigned");
+                return builder.CreateFDiv(builder.CreateFPTrunc(left, builder.getDoubleTy(), "Convert"),
+                                          builder.CreateFPTrunc(right, builder.getDoubleTy(), "Convert"), "divSigned");
             } else {
                 return builder.CreateSDiv(left, right, "divFloat");
             }
@@ -284,17 +284,17 @@ Type * SkyType::toLLVMType() {
     if(type == SKY_VAR) {
         switch (*varType) {
             case SkyVarType::SKY_INT:
-                return llvm::Type::getInt32Ty(context);
+                return builder.getInt32Ty();
             case SkyVarType::SKY_INT_64:
-                return llvm::Type::getInt64Ty(context);
+                return builder.getInt64Ty();
             case SkyVarType::SKY_CHAR:
-                return llvm::Type::getInt8Ty(context);
+                return builder.getInt8Ty();
             case SkyVarType::SKY_FLOAT:
-                return llvm::Type::getFloatTy(context);
+                return builder.getFloatTy();
             case SkyVarType::SKY_DOUBLE:
-                return llvm::Type::getDoubleTy(context);
+                return builder.getDoubleTy();
             case SkyVarType::SKY_BOOL:
-                return llvm::Type::getInt1Ty(context);
+                return builder.getInt1Ty();
             case SkyVarType::SKY_INT_POINTER:
                 return llvm::Type::getInt32PtrTy(context);
             case SkyVarType::SKY_CHAR_POINTER:

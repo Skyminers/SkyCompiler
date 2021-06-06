@@ -70,6 +70,7 @@ Value *calcOp(Value* left, Value* right, BinaryOperators op) {
 }
 
 Value * Program::convertToCode() {
+    puts("Entered convert");
     this->globalArea->convertToCode();
     return this->mainFunc->convertToCode();
 }

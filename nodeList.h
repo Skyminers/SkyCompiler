@@ -126,10 +126,10 @@ class Program: public StatNode {
 public:
     Program(GlobalArea *globalArea, FuncDec *mainFunc): globalArea(globalArea), mainFunc(mainFunc) { }
     Value *convertToCode() override;
-
-private:
     GlobalArea* globalArea;
     FuncDec *mainFunc;
+private:
+
 };
 
 class ConstValue: public ExprNode{

@@ -7,10 +7,13 @@
 #include "sky.tab.h"
 
 extern int yyparse();
-extern Program *root;
+extern Program * root;
 extern ConvertEngine engine;
+extern FILE *yyin, *yyout;
 int main(){
+    yyin = fopen("test.sky", "r");
     yyparse();
+    if (root == nullptr) return -1;
     root->convertToCode();
     engine.compileToFile("compileOut.ir");
     return 0;

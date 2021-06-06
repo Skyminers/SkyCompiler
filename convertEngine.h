@@ -71,8 +71,6 @@ public:
         print = Function::Create(funcType, Function::ExternalLinkage, Twine("printf"), module);
         print->setCallingConv(CallingConv::C);
 
-        breakBlock = nullptr;
-        continueBlock = nullptr;
     }
 
     /*

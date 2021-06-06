@@ -323,7 +323,7 @@ Value *ArrayReference::getValueI() {
 Value *FuncCall::convertToCode() {
     auto func = engine.getModule()->getFunction(id->name);
     if (func == nullptr) {
-        throw FuncNotFound(id->name + " not found");
+        throw FuncNotFound(*(new string(id->name)) + " not found");
     }
     vector<Value*> inputArgs;
     auto funcNeed = func->arg_begin();

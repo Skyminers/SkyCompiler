@@ -2,7 +2,9 @@
 
 #include<stdio.h>
 #include<string>
-#include "sky.tab.c"
+#include "nodeList.h"
+#include "sky.tab.h"
+extern "C" int yywrap() {return 1;}
 using namespace std;
 
 %}
@@ -147,13 +149,3 @@ using namespace std;
                               }
 
 %%
-
-int yyerror(const char *s){
-  fprintf(stderr, "error : %s \n", s);
-  return 0;
-}
-
-int main(){
-  yylex();
-  return 0;
-}

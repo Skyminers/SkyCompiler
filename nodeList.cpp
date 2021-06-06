@@ -38,13 +38,13 @@ Value *calcOp(Value* left, Value* right, BinaryOperators op) {
             if (floatFlag || doubleFlag) {
                 return builder.CreateFSub(left, right, "subFloat");
             } else {
-                return builder.CreateFSub(left, right, "subInt");
+                return builder.CreateSub(left, right, "subInt");
             }
         case OP_MUL:
             if (floatFlag || doubleFlag) {
                 return builder.CreateFMul(left, right, "mulFloat");
             } else {
-                return builder.CreateFMul(left, right, "mulInt");
+                return builder.CreateMul(left, right, "mulInt");
             }
         case OP_DIV:
             return builder.CreateSDiv(left, right, "divSigned");
@@ -421,7 +421,7 @@ Value *ForStat::convertToCode() {
     builder.CreateBr(condition);
     builder.SetInsertPoint(condition);
     auto nowValue = forVar->convertToCode();
-    auto condValue = builder.CreateICmpSLE(nowValue, endValue);
+    auto condValue = builder.CreateICmpSLT(nowValue, endValue);
     condValue = builder.CreateICmpNE(condValue, ConstantInt::get(Type::getInt1Ty(context), 0, true));
     auto branch = builder.CreateCondBr(condValue, loop, breakLoop);
     condition = builder.GetInsertBlock();
@@ -481,7 +481,8 @@ Value *JumpStat::convertToCode() {
 }
 
 Value *ReferenceNode::convertToCode() {
-    return engine.findVarByName(id->name);
+    if (id != nullptr) return engine.findVarByName(id->name);
+    else return arrayRef->getValueI();
 }
 
 Value * PointerNode::convertToCode() {

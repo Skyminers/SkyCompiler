@@ -10,11 +10,25 @@ extern int yyparse();
 extern Program * root;
 extern ConvertEngine engine;
 extern FILE *yyin, *yyout;
-int main(){
-    yyin = fopen("../test.sky", "r");
+int main(int argc, char** argv){
+    if (argc >= 2) {
+        yyin = fopen(argv[1], "r");
+    } else {
+        puts("Invalid param. fuck you!");
+        return 0;
+    }
     yyparse();
     if (root == nullptr) return -1;
     root->convertToCode();
-    engine.compileToFile("compileOut.ir");
+    if (argc != 3) {
+        engine.compileToFile("compileOut.ir");
+        system("llc compileOut.ir");
+        system("gcc compileOut.ir.s -o compileOut");
+    } else {
+        engine.compileToFile(argv[2]);
+        string fileName = string(argv[2]);
+        system(("llc " + fileName).c_str());
+        system(("gcc " + fileName + ".s" + " -o " + fileName).c_str());
+    }
     return 0;
 }

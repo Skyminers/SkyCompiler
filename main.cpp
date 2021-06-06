@@ -25,8 +25,8 @@ int main(int argc, char** argv){
         system("llc compileOut.ir");
         system("gcc compileOut.ir.s -o compileOut");
     } else {
-        engine.compileToFile(argv[2]);
         string fileName = string(argv[2]);
+        engine.compileToFile(fileName+".ir");
         system(("llc " + fileName).c_str());
         system(("gcc " + fileName + ".s" + " -o " + fileName).c_str());
     }

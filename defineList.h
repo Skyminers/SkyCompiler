@@ -6,5 +6,6 @@
 #define DEFINELIST_H
 
 #define SCRIPT
+#define AMAZING_NAME "aNameNeverWillBeCatchedByUserWithNoWillingToNameALongLongNameToFindTheBugOfOurSkyCompilerQwQ"
 
 #endif //DEFINELIST_H

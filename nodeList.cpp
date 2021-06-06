@@ -308,7 +308,7 @@ Type * SkyType::toLLVMType() {
 
 Value *Identifier::convertToCode() {
     auto value = engine.findVarByName(name);
-    return new LoadInst(value->getType()->getPointerElementType(), value, "tmp", false, builder.GetInsertBlock());
+    return new LoadInst(value->getType()->getPointerElementType(), value, AMAZING_NAME, false, builder.GetInsertBlock());
 }
 
 Value *CompoundStat::convertToCode() {

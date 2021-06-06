@@ -57,7 +57,8 @@ Value *calcOp(Value* left, Value* right, BinaryOperators op) {
                 return builder.CreateSDiv(left, right, "divFloat");
             }
         case OP_EQ:
-            return builder.CreateICmpEQ(builder.CreateTrunc(left, builder.getInt32Ty()), builder.CreateTrunc(right, builder.getInt32Ty()), "equal");
+//            if (left->getType() == builder.getInt32Ty()) return builder.CreateICmpEQ(builder.CreateTrunc(left, builder.getInt32Ty()), builder.CreateTrunc(right, builder.getInt32Ty()), "equal");
+            return builder.CreateICmpEQ(left, right, "equal");
         case OP_NE:
             return builder.CreateICmpNE(left, right, "neq");
         case OP_GT:
@@ -366,14 +367,16 @@ Value *FuncCall::convertToCode() {
     }
     vector<Value*> inputArgs;
     auto funcNeed = func->arg_begin();
-    for (auto & it : *args) {
-        if (funcNeed->hasNonNullAttr()) {
-            auto * addr = engine.findVarByName(dynamic_cast<Identifier*>(it)->name);
-            inputArgs.push_back(addr);
-        } else {
-            inputArgs.push_back(it->convertToCode());
+    if (args != nullptr) {
+        for (auto &it : *args) {
+            if (funcNeed->hasNonNullAttr()) {
+                auto *addr = engine.findVarByName(dynamic_cast<Identifier *>(it)->name);
+                inputArgs.push_back(addr);
+            } else {
+                inputArgs.push_back(it->convertToCode());
+            }
+            funcNeed++;
         }
-        funcNeed ++;
     }
     Value *ret = builder.CreateCall(func, inputArgs, "callFunc");
     return ret;

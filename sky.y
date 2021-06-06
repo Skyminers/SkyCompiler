@@ -169,7 +169,9 @@ var_type
 
 func_declaration
     : FUNCTION name '(' var_list ')' compound_statement     { $$ = new FuncDec($2, $4, $6); }
-    | FUNCTION name '(' var_list ')' OPER_PTR var_type compound_statement     { $$ = new FuncDec($2, $4, new SkyType($7), $8); }
+    | FUNCTION name '(' ')' compound_statement              { $$ = new FuncDec($2, nullptr, $5); }
+    | FUNCTION name '(' var_list ')' OPER_PTR var_type compound_statement   { $$ = new FuncDec($2, $4, new SkyType($7), $8); }
+    | FUNCTION name '(' ')' OPER_PTR var_type compound_statement            { $$ = new FuncDec($2, nullptr, new SkyType($6), $7); }
     ;
 
 main_func

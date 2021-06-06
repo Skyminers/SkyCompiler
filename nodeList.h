@@ -621,26 +621,23 @@ private:
 // Especially, function and class can only be defined in the GlobalArea
 class GlobalArea: public StatNode {
 public:
-    GlobalArea() = default;
+    GlobalArea() {
+        constDecList = new ConstDecList();
+        varDecList = new VarDecList();
+        funcDecList = new FuncDecList();
+        classDecList = new ClassDecList();
+    }
     void addConstDec(ConstDecList *cd) {
         for (auto & constDec : *cd) {
             constDec->setGlobal();
         }
-        if (constDecList != nullptr) {
-            constDecList->insert(constDecList->end(), cd->begin(), cd->end());
-        } else {
-            constDecList = cd;
-        }
+        constDecList->insert(constDecList->end(), cd->begin(), cd->end());
     }
     void addVarDec(VarDecList *vd) {
         for (auto & varDec : *vd) {
             varDec->setGlobal();
         }
-        if (varDecList != nullptr) {
-            varDecList->insert(varDecList->end(), vd->begin(), vd->end());
-        } else {
-            varDecList = vd;
-        }
+        varDecList->insert(varDecList->end(), vd->begin(), vd->end());
     }
     void addFuncDec(FuncDec *fd) {
         funcDecList->push_back(fd);

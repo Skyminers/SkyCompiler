@@ -1,7 +1,11 @@
-var i:int;
+var i:int, j:char;
+
+func a() -> bool {
+
+}
+
 func main() -> int {
-    for i in [1, 10, 1] {
-        
+    if (1 > 0) {
     }
     return 0;
 }

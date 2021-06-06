@@ -51,7 +51,6 @@ public:
      * So, array type should be different from normal var.
      * */
     map<string, SkyArrayType*> arrayMap;
-    map<uint, string> ptrMap;
     bool flagIsReturn;
 
 public:
@@ -101,6 +100,10 @@ public:
     Function* askForFunction(string funcName);
     void compileToFile(string fileName);
 
+    /*
+     * BasicBlock dataStruct is used to get the break block and continue block,
+     * when we use break or continue in loops
+     * */
     BasicBlock* getCurBreakBlock();
     BasicBlock* getCurContinueBlock();
     void enterLoop(BasicBlock* breakBlock, BasicBlock* continueBlock);

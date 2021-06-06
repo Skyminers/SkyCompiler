@@ -17,47 +17,53 @@ void printError(string str) {
     cerr << "[Error] " << str << endl;
 }
 
+/*
+ * Create a memory to alloca value in function.
+ * */
 AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction, llvm::StringRef VarName, llvm::Type* type) {
     IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
     return TmpB.CreateAlloca(type, nullptr, VarName);
 }
 
+/*
+ * Binary operator function:
+ * Support :
+ *  add, sub, mul, div, equ, neq, LT, GT, LE, GE, and, or, xor, sl, rl
+ *  Note: all params of binary operator need to be the same type
+ * */
 Value *calcOp(Value* left, Value* right, BinaryOperators op) {
     auto type1 = left->getType();
     auto type2 = right->getType();
+
+    // check the float flag
     bool floatFlag = type1->isFloatTy() || type2->isFloatTy();
     bool doubleFlag = type1->isDoubleTy() || type2->isDoubleTy();
     switch (op) {
         case OP_PLUS:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFAdd(builder.CreateFPTrunc(left, builder.getDoubleTy(), "Convert"),
-                                          builder.CreateFPTrunc(right, builder.getDoubleTy(), "Convert"), "addFloat");
+                return builder.CreateFAdd(left, right, "addFloat");
             } else {
                 return builder.CreateAdd(left, right, "addInt");
             }
         case OP_MINUS:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFSub(builder.CreateFPTrunc(left, builder.getDoubleTy(), "Convert"),
-                                          builder.CreateFPTrunc(right, builder.getDoubleTy(), "Convert"), "subFloat");
+                return builder.CreateFSub(left, right, "subFloat");
             } else {
                 return builder.CreateSub(left, right, "subInt");
             }
         case OP_MUL:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFMul(builder.CreateFPTrunc(left, builder.getDoubleTy(), "Convert"),
-                                          builder.CreateFPTrunc(right, builder.getDoubleTy(), "Convert"), "mulFloat");
+                return builder.CreateFMul(left, right, "mulFloat");
             } else {
                 return builder.CreateMul(left, right, "mulInt");
             }
         case OP_DIV:
             if (floatFlag || doubleFlag) {
-                return builder.CreateFDiv(builder.CreateFPTrunc(left, builder.getDoubleTy(), "Convert"),
-                                          builder.CreateFPTrunc(right, builder.getDoubleTy(), "Convert"), "divSigned");
+                return builder.CreateFDiv(left, right, "divSigned");
             } else {
                 return builder.CreateSDiv(left, right, "divFloat");
             }
         case OP_EQ:
-//            if (left->getType() == builder.getInt32Ty()) return builder.CreateICmpEQ(builder.CreateTrunc(left, builder.getInt32Ty()), builder.CreateTrunc(right, builder.getInt32Ty()), "equal");
             return builder.CreateICmpEQ(left, right, "equal");
         case OP_NE:
             return builder.CreateICmpNE(left, right, "neq");
@@ -87,14 +93,21 @@ Value *calcOp(Value* left, Value* right, BinaryOperators op) {
 
 }
 
+/*
+ * Entrance of total AST tree
+ * We begin to convert AST tree to LLVM-IR code from this node.
+ * */
 Value * Program::convertToCode() {
     puts("Entered convert");
     if (globalArea == nullptr) {
         printError( "globalArea pointer is nullptr");
         return nullptr;
     }
+
+    // Global declaration : const, var, function [and class]
     this->globalArea->convertToCode();
 
+    // We must have a main function as the beginning function
     if (mainFunc == nullptr) {
         printError( "No main function found.");
         return nullptr;
@@ -106,68 +119,82 @@ Value * GlobalArea:: convertToCode() {
     if (constDecList != nullptr) {
         printLog("Construct const declaration");
         for (auto &it: *constDecList) {
-            it->convertToCode();
+            it->convertToCode(); // const value for declaration
         }
     }
     if (varDecList != nullptr) {
         printLog("Construct var declaration");
         for (auto &it: *varDecList) {
-            it->convertToCode();
+            it->convertToCode(); // var value for declaration
         }
     }
     if (funcDecList != nullptr) {
         printLog("Construct function declaration");
         for (auto &it: *funcDecList) {
-            it->convertToCode();
+            it->convertToCode(); // func for declaration
         }
     }
+    // TODO: Class type declaration
 //    for(auto &it: *classDecList){
 //        it->convertToCode();
 //    }
     return nullptr;
 }
 
+/*
+ * Convert const value to LLVM-IR code
+ * */
 Value * ConstDec::convertToCode() {
-    if ( isGlobal() ) {
+    if ( isGlobal() ) { // Global value should be declared in module (heap memory)
         return new GlobalVariable(*engine.getModule(), type->toLLVMType(), true, GlobalValue::ExternalLinkage, value->create(), id->name);
-    } else {
+    } else { // Inner value should be declared in function (stack memory);
         auto mem = CreateEntryBlockAlloca(engine.nowFunction(), id->name, type->toLLVMType());
         return builder.CreateStore(value->convertToCode(), mem);
     }
 }
 
+// Return Int32 value
 Value *SkyInt::convertToCode() {
     return builder.getInt32(value.iVal);
 }
 
+// Return Double value
 Value *SkyDouble::convertToCode() {
     return ConstantFP::get(builder.getDoubleTy(), value.dVal);
 }
 
+// Return Float value
 Value *SkyFloat::convertToCode() {
     return ConstantFP::get(builder.getFloatTy(), value.iVal);
 }
 
+// Return Char value
 Value *SkyChar::convertToCode() {
     return builder.getInt8(value.cVal);
 }
 
+// Return Bool value
 Value *SkyBool::convertToCode() {
     return builder.getInt1(value.bVal);
 }
 
+// Return Char* value (Actually is arrayType in LLVM)
 Value *SkyCharPointer::convertToCode() {
     char *p = value.sVal;
     int siz = (int)strlen(p);
     vector<Constant *> vec;
     vec.resize(siz);
     for (int i = 0; i < siz; ++i) {
-        vec[i] = builder.getInt8(*(p + i));
+        vec[i] = builder.getInt8(*(p + i)); // get all default char value
     }
     auto arrType = ArrayType::get(builder.getInt8Ty(), siz);
     return ConstantArray::get(arrType, vec);
 }
 
+/*
+ * Constant Create: create the constant value to use
+ * Value is decidable because it is constant, so this function directly return the value of its type
+ * */
 Constant* ConstValue::create() {
     switch(getType()) {
         case SKY_INT:
@@ -176,7 +203,7 @@ Constant* ConstValue::create() {
             return builder.getInt1(getValue().bVal);
         case SKY_CHAR:
             return builder.getInt8(getValue().cVal);
-        case SKY_CHAR_POINTER: {
+        case SKY_CHAR_POINTER: { // Pointer is a special type
             char *p = getValue().sVal;
             int siz = (int)strlen(p);
             vector<Constant *> vec;
@@ -197,12 +224,13 @@ Constant* ConstValue::create() {
     }
 }
 
+// As same as constant declaration (with small difference)
 Value *VarDec::convertToCode() {
     if (type->type == SKY_ARRAY) {
         engine.arrayMap[id->name] = type->arrayType;
     }
     auto varType = type->toLLVMType();
-    if(isGlobal()) {
+    if(isGlobal()) { // Difference is that : we should not pass initValue to it.
         return new GlobalVariable(*engine.getModule(), varType, false, GlobalValue::ExternalLinkage, type->Create(), id->name);
     } else {
         return CreateEntryBlockAlloca(engine.nowFunction(), id->name, varType);
@@ -210,6 +238,10 @@ Value *VarDec::convertToCode() {
     return nullptr;
 }
 
+/*
+ * Create a var with its type
+ * This function will return a Value* dependencies on it Type, and use 0 to initialize it.
+ * */
 Constant* SkyType::Create() {
     if(type == SKY_VAR) {
         switch (*varType) {
@@ -225,6 +257,7 @@ Constant* SkyType::Create() {
                 return ConstantFP::get(builder.getDoubleTy(), .0);
             case SKY_BOOL:
                 return builder.getInt1(false);
+                // TODO: pointers
             case SKY_INT_POINTER:
             case SKY_INT_64_POINTER:
             case SKY_CHAR_POINTER:
@@ -233,7 +266,7 @@ Constant* SkyType::Create() {
             case SKY_BOOL_POINTER:
                 return builder.getInt32(0);
         }
-    } else if(type == SKY_ARRAY) {
+    } else if(type == SKY_ARRAY) { //Array type is a special type
         int siz = arrayType->size;
         vector<Constant *> vec;
         vec.resize(siz);
@@ -245,6 +278,12 @@ Constant* SkyType::Create() {
     }
 }
 
+/*
+ *  Function declaration : this function is used to declare function
+ *  1. construct params
+ *  2. convert body
+ *  3. end
+ * */
 Value * FuncDec::convertToCode() {
     vector<Type*> args;
     if (paraList != nullptr) {
@@ -252,6 +291,7 @@ Value * FuncDec::convertToCode() {
             args.push_back(it->type->toLLVMType());
         }
     }
+    // func (args) -> retType {}
     auto funcType = FunctionType::get(retType->toLLVMType(), args, false);
     auto func = Function::Create(funcType, GlobalValue::ExternalLinkage, id->name, engine.getModule());
     engine.enterFunction(func);
@@ -274,6 +314,7 @@ Value * FuncDec::convertToCode() {
     body->convertToCode();
 
     engine.exitFunction();
+    // Maintain the function stack
     if (engine.funcStackSize()) {
         auto nowFunc = engine.nowFunction();
         builder.SetInsertPoint(&(nowFunc->getBasicBlockList().back()));
@@ -281,6 +322,9 @@ Value * FuncDec::convertToCode() {
     return func;
 }
 
+/*
+ * TO LLVM type : this function is used to cast our type : SkyType to LLVM type
+ * */
 Type * SkyType::toLLVMType() {
     if(type == SKY_VAR) {
         switch (*varType) {
@@ -296,6 +340,7 @@ Type * SkyType::toLLVMType() {
                 return builder.getDoubleTy();
             case SkyVarType::SKY_BOOL:
                 return builder.getInt1Ty();
+                // TODO: pointers
             case SkyVarType::SKY_INT_POINTER:
                 return llvm::Type::getInt32PtrTy(context);
             case SkyVarType::SKY_CHAR_POINTER:
@@ -309,17 +354,23 @@ Type * SkyType::toLLVMType() {
             case SkyVarType::SKY_BOOL_POINTER:
                 return llvm::Type::getInt1PtrTy(context);
         }
-    } else if (type == SKY_ARRAY) {
+    } else if (type == SKY_ARRAY) { // Array type is special
         return ArrayType::get(arrayType->type->toLLVMType(), arrayType->size);
     } else return llvm::Type::getVoidTy(context);
 }
 
-
+/*
+ * Identifier conversion : load the value of this identifier and return a pointer which point to it.
+ * */
 Value *Identifier::convertToCode() {
-    auto value = engine.findVarByName(name);
+    auto value = engine.findVarByName(name); // Find name first
+    // Note: this function will get exception if we can not find correct var in context.
     return new LoadInst(value->getType()->getPointerElementType(), value, AMAZING_NAME, false, builder.GetInsertBlock());
 }
 
+/*
+ * CompoundStat: {}, which used to contain lots of lines of code
+ * */
 Value *CompoundStat::convertToCode() {
     for (auto it : *statList) {
         it->convertToCode();
@@ -327,44 +378,64 @@ Value *CompoundStat::convertToCode() {
     return nullptr;
 }
 
+/*
+ * AssignStart : This function is used to load value of right to left identifier (arrayReference)
+ * */
 Value *AssignStat::convertToCode() {
     Value *res = nullptr;
     switch (type) {
-        case ID_ASSIGN:
+        case ID_ASSIGN: // Identifier = value*
             return builder.CreateStore(expr->convertToCode(), engine.findVarByName(id->name));
-        case ARRAY_ASSIGN:
+        case ARRAY_ASSIGN: // ArratReference = value*
             return builder.CreateStore(expr->convertToCode(), arrayRef->getValueI());
     }
     return nullptr;
 }
 
+/*
+ * BinaryExpr : Format function.
+ * */
 Value *BinaryExpr::convertToCode() {
     auto leftValue = this->left->convertToCode();
     auto rightValue = this->right->convertToCode();
     return calcOp(leftValue, rightValue, op);
 }
 
+/*
+ * ArrayReference, this function is used with the function below.
+ * */
 Value *ArrayReference::convertToCode() {
     return builder.CreateLoad(getValueI(), "arrReference");
 }
 
+/*
+ * GetValueI : this function is used to get de addr of identifier[index]
+ * */
 Value *ArrayReference::getValueI() {
     auto arr = engine.findVarByName(id->name);
     auto index = subInd->convertToCode();
     vector<Value*> valueVec;
-    valueVec.push_back(builder.getInt32(0));
+    valueVec.push_back(builder.getInt32(0)); // unknown params, but we need this
     valueVec.push_back(index);
+    // Create a GEP to save value
     return builder.CreateInBoundsGEP(arr, ArrayRef<Value *>(valueVec));
 }
 
+/*
+ * Function Call: this function is used to call function
+ * */
 Value *FuncCall::convertToCode() {
     auto func = engine.getModule()->getFunction(id->name);
-    if (func == nullptr) {
+    if (func == nullptr) { // If this function is not implement
         throw FuncNotFound(*(new string(id->name)) + " not found");
     }
+
+    // System function should have its own call function, because it needs some special settings.
     if (strcmp(id->name, "printf") == 0 || strcmp(id->name, "scanf") == 0) {
         return callSysIO();
     }
+
+    // Get all params
     vector<Value*> inputArgs;
     auto funcNeed = func->arg_begin();
     if (args != nullptr) {
@@ -378,16 +449,33 @@ Value *FuncCall::convertToCode() {
             funcNeed++;
         }
     }
+
+    // Create Call sentences
     Value *ret = builder.CreateCall(func, inputArgs, "callFunc");
     return ret;
 }
 
+
+/*
+ * If Status:
+ *     if (condition) {
+ *         -then-
+ *     } else {
+ *         -else-
+ *     }
+ *     -common-
+ * condition -> then/else -> common
+ * Note: LLVM do not permit any code after br or ret in the same basic block,
+ *       so we must check this condition.
+ * */
 Value *IfStat::convertToCode() {
 
     Value *condValue = condExpr->convertToCode();
     condValue = builder.CreateICmpNE(condValue, ConstantInt::get(Type::getInt1Ty(context), 0, true), "if");
 
     auto func = engine.nowFunction();
+
+    // Create 3 basic blocks to contain codes
     auto thenCond = BasicBlock::Create(context, "thenCond", func);
     auto elseCond = BasicBlock::Create(context, "elseCond", func);
     auto common = BasicBlock::Create(context, "common", func);
@@ -398,7 +486,7 @@ Value *IfStat::convertToCode() {
 
     engine.flagIsReturn = false;
     thenStat->convertToCode();
-    if (!engine.flagIsReturn) {
+    if (!engine.flagIsReturn) {// Do not create br, is jump is in body
         builder.CreateBr(common);
     }
     engine.flagIsReturn = false;
@@ -411,7 +499,7 @@ Value *IfStat::convertToCode() {
     if (elseStat != nullptr) {
         elseStat->convertToCode();
     }
-    if (!engine.flagIsReturn) {
+    if (!engine.flagIsReturn) { // Do not create br, is jump is in body
         builder.CreateBr(common);
     }
     engine.flagIsReturn = false;
@@ -421,6 +509,16 @@ Value *IfStat::convertToCode() {
     return branch;
 }
 
+/*
+ * for Status:
+ *     for condition {
+ *         -loop-
+ *     }
+ *     -breakBlock-
+ * condition -> loop/breakkBlock, loop->condition
+ * Note: LLVM do not permit any code after br or ret in the same basic block,
+ *       so we must check this condition.
+ * */
 Value *ForStat::convertToCode() {
     auto func = engine.nowFunction();
 
@@ -431,6 +529,7 @@ Value *ForStat::convertToCode() {
     Value * varValue = engine.findVarByName(forVar->name);
     builder.CreateStore(startValue, varValue);
 
+    // Create 3 basic blocks to contain codes
     BasicBlock *condition = BasicBlock::Create(context, "condition", func);
     BasicBlock *loop = BasicBlock::Create(context, "loopCode", func);
     BasicBlock *breakLoop = BasicBlock::Create(context, "breakLoop", func);
@@ -462,6 +561,16 @@ Value *ForStat::convertToCode() {
     return branch;
 }
 
+/*
+ * While Status:
+ *     while condition {
+ *         -loop-
+ *     }
+ *     -breakBlock-
+ * condition -> loop/breakkBlock, loop->condition
+ * Note: LLVM do not permit any code after br or ret in the same basic block,
+ *       so we must check this condition.
+ * */
 Value *WhileStat::convertToCode() {
     auto func = engine.nowFunction();
     BasicBlock * condition = BasicBlock::Create(context, "condition", func);
@@ -491,6 +600,13 @@ Value *WhileStat::convertToCode() {
     return branch;
 }
 
+/*
+ * Jump Status: Control codes
+ * - break : exit now loop
+ * - continue : directly enter the condition part in current loop
+ * - return : exit the function and return value
+ * Note : No code is allowed to be write after JumpStat, so we used a flag to pass a signal.
+ * */
 Value *JumpStat::convertToCode() {
     engine.flagIsReturn = true;
     switch ( type ) {
@@ -508,6 +624,9 @@ Value *JumpStat::convertToCode() {
     return nullptr;
 }
 
+/*
+ * Return the pointer directly, if a reference value is needed.
+ * */
 Value *ReferenceNode::convertToCode() {
     if (id != nullptr) return engine.findVarByName(id->name);
     else return arrayRef->getValueI();
@@ -525,6 +644,11 @@ Value * SkyType::convertToCode() {
     return nullptr;
 }
 
+/*
+ * System function : scanf and printf
+ * To implement the input and output of our language, we use the function of C : scanf , printf.
+ * However, to adapt the format of scanf and printf, we need to convert our type to stander.
+ * */
 Value * FuncCall::callSysIO() {
     auto func = engine.getModule()->getFunction(id->name);
 
@@ -540,8 +664,10 @@ Value * FuncCall::callSysIO() {
             }
             auto formatConst = llvm::ConstantDataArray::getString(context, p);
             auto formatStrVar = new llvm::GlobalVariable(*(engine.getModule()), llvm::ArrayType::get(builder.getInt8Ty(), strlen(p) + 1), true, llvm::GlobalValue::ExternalLinkage, formatConst, "printfStr");
+            // (I don't know why I should use indices[], but it works)
             auto zero = llvm::Constant::getNullValue(builder.getInt32Ty());
             Constant* indices[] = {zero, zero};
+            // Convert to a char pointer
             auto ptr = ConstantExpr::getGetElementPtr(formatStrVar->getType()->getElementType(), formatStrVar, indices);
             inputArgs.push_back(ptr);
             flag = true;

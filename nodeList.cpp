@@ -285,41 +285,41 @@ Constant* SkyType::Create() {
  *  3. end
  * */
 Value * FuncDec::convertToCode() {
-    vector<Type*> args;
-    if (paraList != nullptr) {
-        for (auto &it: *paraList) {
-            args.push_back(it->type->toLLVMType());
-        }
-    }
-    // func (args) -> retType {}
-    auto funcType = FunctionType::get(retType->toLLVMType(), args, false);
-    auto func = Function::Create(funcType, GlobalValue::ExternalLinkage, id->name, engine.getModule());
-    engine.enterFunction(func);
-    BasicBlock *funcBlock = BasicBlock::Create(context, "function begin", func, nullptr);
-    builder.SetInsertPoint(funcBlock);
-
-    // calc params
-    auto iterToPara = func->arg_begin();
-    if (paraList != nullptr) {
-        for (auto &it: *paraList) {
-            auto mem = CreateEntryBlockAlloca(func, it->id->name, it->type->toLLVMType());
-            builder.CreateStore(iterToPara++, mem);
-        }
-    }
-    Value * ret = nullptr;
-    if ( retType->type != SkyTypes::SKY_VOID ){
-        ret = CreateEntryBlockAlloca(func, id->name, retType->toLLVMType());
-    }
-
-    body->convertToCode();
-
-    engine.exitFunction();
-    // Maintain the function stack
-    if (engine.funcStackSize()) {
-        auto nowFunc = engine.nowFunction();
-        builder.SetInsertPoint(&(nowFunc->getBasicBlockList().back()));
-    }
-    return func;
+//    vector<Type*> args;
+//    if (paraList != nullptr) {
+//        for (auto &it: *paraList) {
+//            args.push_back(it->type->toLLVMType());
+//        }
+//    }
+//    // func (args) -> retType {}
+//    auto funcType = FunctionType::get(retType->toLLVMType(), args, false);
+//    auto func = Function::Create(funcType, GlobalValue::ExternalLinkage, id->name, engine.getModule());
+//    engine.enterFunction(func);
+//    BasicBlock *funcBlock = BasicBlock::Create(context, "function begin", func, nullptr);
+//    builder.SetInsertPoint(funcBlock);
+//
+//    // calc params
+//    auto iterToPara = func->arg_begin();
+//    if (paraList != nullptr) {
+//        for (auto &it: *paraList) {
+//            auto mem = CreateEntryBlockAlloca(func, it->id->name, it->type->toLLVMType());
+//            builder.CreateStore(iterToPara++, mem);
+//        }
+//    }
+//    Value * ret = nullptr;
+//    if ( retType->type != SkyTypes::SKY_VOID ){
+//        ret = CreateEntryBlockAlloca(func, id->name, retType->toLLVMType());
+//    }
+//
+//    body->convertToCode();
+//
+//    engine.exitFunction();
+//    // Maintain the function stack
+//    if (engine.funcStackSize()) {
+//        auto nowFunc = engine.nowFunction();
+//        builder.SetInsertPoint(&(nowFunc->getBasicBlockList().back()));
+//    }
+//    return func;
 }
 
 /*
@@ -690,4 +690,12 @@ Value * ConstDecListNode::convertToCode() {
     for (auto &it : *constDecList) {
         it->convertToCode();
     }
+}
+
+Value *SkyFuncType::convertToCode() {
+    return nullptr;
+}
+
+Value *SkyAutoType::convertToCode() {
+    return nullptr;
 }

@@ -32,6 +32,21 @@ Sky 语言编译器
     - 删除: delete a
 10. if 语句 采用 C++ 形式
 11. 由于我们知道再详细的描述都不如一个例子来的直观，所以剩下的看下面的例子吧
+12. 函数式
+    - 正常的函数定义 func funcName(varName: type,varName: type) [-> returnType] {} 可以将funcName视为一个函数指针, 可以指向别的函数
+    - 定义一个空的函数指针 var a : func
+    - lambda表达式 
+         - f = lambda(varName: type, varName: type) -> expression  (returnType设为auto, 需要类型推断)
+         - f = lambda(varName: type, varName: type) -> { statement_list } (returnType设为auto, 需要类型推断)  
+         - f = lambda(varName: type, varName: type) : returnType -> expression 
+         - f = lambda(varName: type, varName: type) : returnType -> { statement_list }
+
+说明：
+1. SkyTypes新增了两种: SKY_FUNC, SKY_AUTO
+2. 新增SkyFuncType节点记录函数参数、返回值和函数体，之前的FuncDec节点做了修改，因此convertToCode学长也需要修改一下
+3. FuncDec处理的是全局函数的定义；VarDec中也有函数类型的变量定义，主要是对lambda表达式的处理（同样转换成id + SkyFuncType)以及空的函数指针的声明。如果不需要对全局函数特殊处理的话，或许FuncDec可以直接合并到VarDec中，也就是把函数定义也认为是一种变量定义。
+4. SkyAutoType只是一个空节点，主要是方便我语法分析部分的调用。判断id是不是auto类型的时候，只要看是不是SkyType->type == SKY_AUTO即可。
+
 
 至于剩下的，看完了 [LLVM](https://github.com/Evian-Zhang/llvm-ir-tutorial/blob/master/LLVM%20IR%E5%85%A5%E9%97%A8%E6%8C%87%E5%8D%97(1)%E2%80%94%E2%80%94LLVM%E6%9E%B6%E6%9E%84%E7%AE%80%E4%BB%8B.md) 再说？
 

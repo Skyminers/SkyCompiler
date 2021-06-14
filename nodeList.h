@@ -26,6 +26,8 @@ class ExprNode;
 class ClassDec;
 class PointerNode;
 class ArrayReference;
+class SkyFuncType;
+class SkyAutoType;
 
 typedef vector<Identifier*> IdentifierList;
 typedef vector<StatNode*>   StatList;
@@ -71,7 +73,9 @@ union ConstValueUnion{
 enum SkyTypes {
     SKY_ARRAY,
     SKY_VOID,
-    SKY_VAR
+    SKY_VAR,
+    SKY_FUNC,
+    SKY_AUTO
 };
 
 enum BinaryOperators {
@@ -109,7 +113,8 @@ public:
 // the node for expression
 // expression has return value
 class ExprNode: public ASTNode {
-
+public:
+    SkyTypes type;
 };
 
 // the node for statement
@@ -291,10 +296,14 @@ public:
 // including:   SKY_ARRAY : array type   Example: int[10]
 //              SKY_VAR : simple types (SKY_INT, SKY_FLOAT, ...)
 //              SKY_VOID : now is only used in the function return type, which means the function has no return value
+//              SKY_FUNC : function type
+//              SKY_AUTO : auto type (type inference)
 class SkyType: public StatNode {
 public:
     explicit SkyType(SkyArrayType *arrayType): arrayType(arrayType), type(SKY_ARRAY) { }
     explicit SkyType(SkyVarType *varType): varType(varType), type(SKY_VAR) { }
+    explicit SkyType(SkyFuncType *funcType): funcType(funcType), type(SKY_FUNC) { }
+    explicit SkyType(SkyAutoType *autoType): autoType(autoType), type(SKY_AUTO) { }
     SkyType(): type(SKY_VOID) { }
 
     Value *convertToCode() override;
@@ -305,7 +314,30 @@ public:
 
     SkyArrayType *arrayType{};
     SkyVarType *varType{};
+    SkyFuncType *funcType{};
+    SkyAutoType *autoType{};
     SkyTypes type;
+};
+
+class SkyFuncType: public StatNode {
+public:
+    SkyFuncType(VarDecList *paraList, SkyType *returnType, CompoundStat *funcBody): paraList(paraList), retType(returnType), body(funcBody) { }
+    SkyFuncType(VarDecList *paraList, CompoundStat *funcBody): paraList(paraList), body(funcBody) {
+        retType = new SkyType();
+    }
+    SkyFuncType(): paraList(nullptr), retType(nullptr), body(nullptr) { }
+    Value *convertToCode() override;
+
+    VarDecList *paraList;
+    SkyType *retType;
+    CompoundStat *body;
+};
+
+class SkyAutoType: public StatNode {
+public:
+    SkyAutoType() = default;
+    Value *convertToCode() override;
+
 };
 
 // In human terms, it can be seen as the name of something(variable, function, class, const, ...)
@@ -325,6 +357,9 @@ public:
 class VarDec: public StatNode {
 public:
     VarDec(Identifier *id, SkyType *type, ExprNode* expr): id(id), type(type), expr(expr), global(false) { }
+    VarDec(Identifier *id, SkyFuncType *funcType): id(id) {
+        type = new SkyType(funcType);
+    }
     bool isGlobal() const {
         return this->global;
     }
@@ -335,9 +370,9 @@ public:
     Value *convertToCode() override;
 
     Identifier *id;
-    SkyType *type;      // if type == nullptr, need Type Inference
-    ExprNode *expr;     // when type == nullptr, calculate this expr to get the type
-    bool global;        // whether is the global variable
+    SkyType *type;      // if type == SKY_AUTO, need Type Inference
+    ExprNode *expr{};     // when type == SKY_AUTO, calculate this expr to get the type
+    bool global{};        // whether is the global variable
 };
 
 // Node for const declaration
@@ -366,14 +401,14 @@ public:
 class VarDecListNode: public StatNode {
 public:
     explicit VarDecListNode(VarDecList *varDecList): varDecList(varDecList) { }
-    virtual Value *convertToCode();
+    Value *convertToCode() override;
     VarDecList *varDecList;
 };
 
 class ConstDecListNode: public StatNode {
 public:
     explicit ConstDecListNode(ConstDecList *constDecList): constDecList(constDecList) { }
-    virtual Value *convertToCode();
+    Value *convertToCode() override;
     ConstDecList *constDecList;
 };
 
@@ -383,17 +418,12 @@ public:
 //      func func_name(paraList) -> retType compound_statement
 class FuncDec: public StatNode {
 public:
-    FuncDec(Identifier *name, VarDecList *paraList, SkyType *returnType, CompoundStat *funcBody): id(name), paraList(paraList), retType(returnType), body(funcBody) { }
-    FuncDec(Identifier *name, VarDecList *paraList, CompoundStat *funcBody): id(name), paraList(paraList), body(funcBody) {
-        retType = new SkyType();
-    }
+    FuncDec(Identifier *name, SkyFuncType *funcType): id(name), funcType(funcType) { }
     Value *convertToCode() override;
 
 private:
     Identifier *id;
-    VarDecList *paraList;
-    SkyType *retType;
-    CompoundStat *body;
+    SkyFuncType *funcType;
 };
 
 // Node for class body
@@ -405,7 +435,7 @@ private:
 class ClassBody: public StatNode {
 public:
     ClassBody(FuncDec *init, FuncDec *del, FuncDecList *funcList): initFunc(init), delFunc(del), funcList(funcList) { }
-    virtual Value *convertToCode() { return nullptr; }
+    Value *convertToCode() override { return nullptr; }
 
 private:
     FuncDec *initFunc, *delFunc;
@@ -419,7 +449,7 @@ private:
 class ClassDec: public StatNode {
 public:
     ClassDec(Identifier *name, Identifier *father, ClassBody *body): name(name), father(father), body(body) { }
-    virtual Value *convertToCode() { return nullptr; }
+    Value *convertToCode() override { return nullptr; }
 
 private:
     Identifier *name, *father; // father can be nullptr
@@ -429,6 +459,7 @@ private:
 enum AssignType {
     ID_ASSIGN,
     ARRAY_ASSIGN,
+    LAMBDA_ASSIGN,
 //    CLASS_ASSIGN,
 //    POINTER_ASSIGN
 };
@@ -445,17 +476,19 @@ enum AssignType {
 class AssignStat: public StatNode {
 public:
     AssignStat(Identifier *id, ExprNode *expr): id(id), expr(expr), type(ID_ASSIGN) { }
+    AssignStat(Identifier *id, SkyFuncType *lambda): id(id), lambda(lambda), type(LAMBDA_ASSIGN) { }
     AssignStat(ArrayReference *arrayRef, ExprNode *expr): arrayRef(arrayRef), expr(expr), type(ARRAY_ASSIGN) { }
 //    AssignStat(Identifier *id, Identifier *cid, ExprNode *expr): id(id), childId(cid), expr(expr), type(CLASS_ASSIGN) { }
 //    AssignStat(PointerNode *pNode, ExprNode *expr): pNode(pNode), expr(expr), type(POINTER_ASSIGN) { }
+    Value *convertToCode() override;
 
 private:
     Identifier *id{};
+    SkyFuncType *lambda{};
     ArrayReference *arrayRef{};
     ExprNode *expr;
     AssignType type;
 
-    Value *convertToCode();
 };
 
 // Node for if statement
@@ -525,9 +558,11 @@ private:
 //      { statement_list }
 class CompoundStat: public StatNode {
 public:
+    CompoundStat() {
+        statList = new StatList();
+    }
     explicit CompoundStat(StatList *statList): statList(statList) { }
     Value* convertToCode() override;
-private:
     StatList *statList;
 };
 
@@ -568,7 +603,7 @@ private:
 class ClassRef: public ExprNode {
 public:
     ClassRef(Identifier *id, Identifier *childId): id(id), childId(childId) { }
-    virtual Value *convertToCode() { return nullptr; }
+    Value *convertToCode() override { return nullptr; }
 
 private:
     Identifier *id, *childId;   // id: className,  childId: classMemberName
@@ -600,7 +635,7 @@ private:
 // and the expression value should be calculated first, then use the '*'
 class PointerNode: public ExprNode {
 public:
-    PointerNode(ExprNode *expr): expr(expr) { }
+    explicit PointerNode(ExprNode *expr): expr(expr) { }
 
     Value *convertToCode() override;
 
@@ -611,8 +646,8 @@ public:
 // To be simple, we only parse one kind rule: &id
 class ReferenceNode: public ExprNode {
 public:
-    ReferenceNode(Identifier *id): id(id) { }
-    ReferenceNode(ArrayReference *arrayRef): arrayRef(arrayRef) { }
+    explicit ReferenceNode(Identifier *id): id(id) { }
+    explicit ReferenceNode(ArrayReference *arrayRef): arrayRef(arrayRef) { }
     Value *convertToCode() override;
 
 private:

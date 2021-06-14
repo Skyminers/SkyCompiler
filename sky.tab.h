@@ -55,54 +55,55 @@
      LET = 271,
      NEW = 272,
      DELETE = 273,
-     FUNCTION = 274,
-     JUMP_BREAK = 275,
-     JUMP_CONTINUE = 276,
-     JUMP_RETURN = 277,
-     IF = 278,
-     ELSE = 279,
-     FOR = 280,
-     WHILE = 281,
-     IN = 282,
-     CLASS = 283,
-     THIS = 284,
-     TYPE_INT = 285,
-     TYPE_INT_POINTER = 286,
-     TYPE_INT_64 = 287,
-     TYPE_INT_64_POINTER = 288,
-     TYPE_CHAR = 289,
-     TYPE_CHAR_POINTER = 290,
-     TYPE_FLOAT = 291,
-     TYPE_FLOAT_POINTER = 292,
-     TYPE_DOUBLE = 293,
-     TYPE_DOUBLE_POINTER = 294,
-     TYPE_BOOL = 295,
-     TYPE_BOOL_POINTER = 296,
-     ADD_ASSIGN = 297,
-     SUB_ASSIGN = 298,
-     MUL_ASSIGN = 299,
-     DIV_ASSIGN = 300,
-     MOD_ASSIGN = 301,
-     AND_ASSIGN = 302,
-     XOR_ASSIGN = 303,
-     OR_ASSIGN = 304,
-     OPER_PLUS = 305,
-     OPER_MINUS = 306,
-     OPER_DIV = 307,
-     OPER_MOD = 308,
-     OPER_RIGHT = 309,
-     OPER_LEFT = 310,
-     OPER_PTR = 311,
-     OPER_AND = 312,
-     OPER_OR = 313,
-     OPER_NOT = 314,
-     OPER_LT = 315,
-     OPER_LE = 316,
-     OPER_GT = 317,
-     OPER_GE = 318,
-     OPER_EQ = 319,
-     OPER_NE = 320,
-     LF = 321
+     LAMBDA = 274,
+     FUNCTION = 275,
+     JUMP_BREAK = 276,
+     JUMP_CONTINUE = 277,
+     JUMP_RETURN = 278,
+     IF = 279,
+     ELSE = 280,
+     FOR = 281,
+     WHILE = 282,
+     IN = 283,
+     CLASS = 284,
+     THIS = 285,
+     TYPE_INT = 286,
+     TYPE_INT_POINTER = 287,
+     TYPE_INT_64 = 288,
+     TYPE_INT_64_POINTER = 289,
+     TYPE_CHAR = 290,
+     TYPE_CHAR_POINTER = 291,
+     TYPE_FLOAT = 292,
+     TYPE_FLOAT_POINTER = 293,
+     TYPE_DOUBLE = 294,
+     TYPE_DOUBLE_POINTER = 295,
+     TYPE_BOOL = 296,
+     TYPE_BOOL_POINTER = 297,
+     ADD_ASSIGN = 298,
+     SUB_ASSIGN = 299,
+     MUL_ASSIGN = 300,
+     DIV_ASSIGN = 301,
+     MOD_ASSIGN = 302,
+     AND_ASSIGN = 303,
+     XOR_ASSIGN = 304,
+     OR_ASSIGN = 305,
+     OPER_PLUS = 306,
+     OPER_MINUS = 307,
+     OPER_DIV = 308,
+     OPER_MOD = 309,
+     OPER_RIGHT = 310,
+     OPER_LEFT = 311,
+     OPER_PTR = 312,
+     OPER_AND = 313,
+     OPER_OR = 314,
+     OPER_NOT = 315,
+     OPER_LT = 316,
+     OPER_LE = 317,
+     OPER_GT = 318,
+     OPER_GE = 319,
+     OPER_EQ = 320,
+     OPER_NE = 321,
+     LF = 322
    };
 #endif
 /* Tokens.  */
@@ -122,54 +123,55 @@
 #define LET 271
 #define NEW 272
 #define DELETE 273
-#define FUNCTION 274
-#define JUMP_BREAK 275
-#define JUMP_CONTINUE 276
-#define JUMP_RETURN 277
-#define IF 278
-#define ELSE 279
-#define FOR 280
-#define WHILE 281
-#define IN 282
-#define CLASS 283
-#define THIS 284
-#define TYPE_INT 285
-#define TYPE_INT_POINTER 286
-#define TYPE_INT_64 287
-#define TYPE_INT_64_POINTER 288
-#define TYPE_CHAR 289
-#define TYPE_CHAR_POINTER 290
-#define TYPE_FLOAT 291
-#define TYPE_FLOAT_POINTER 292
-#define TYPE_DOUBLE 293
-#define TYPE_DOUBLE_POINTER 294
-#define TYPE_BOOL 295
-#define TYPE_BOOL_POINTER 296
-#define ADD_ASSIGN 297
-#define SUB_ASSIGN 298
-#define MUL_ASSIGN 299
-#define DIV_ASSIGN 300
-#define MOD_ASSIGN 301
-#define AND_ASSIGN 302
-#define XOR_ASSIGN 303
-#define OR_ASSIGN 304
-#define OPER_PLUS 305
-#define OPER_MINUS 306
-#define OPER_DIV 307
-#define OPER_MOD 308
-#define OPER_RIGHT 309
-#define OPER_LEFT 310
-#define OPER_PTR 311
-#define OPER_AND 312
-#define OPER_OR 313
-#define OPER_NOT 314
-#define OPER_LT 315
-#define OPER_LE 316
-#define OPER_GT 317
-#define OPER_GE 318
-#define OPER_EQ 319
-#define OPER_NE 320
-#define LF 321
+#define LAMBDA 274
+#define FUNCTION 275
+#define JUMP_BREAK 276
+#define JUMP_CONTINUE 277
+#define JUMP_RETURN 278
+#define IF 279
+#define ELSE 280
+#define FOR 281
+#define WHILE 282
+#define IN 283
+#define CLASS 284
+#define THIS 285
+#define TYPE_INT 286
+#define TYPE_INT_POINTER 287
+#define TYPE_INT_64 288
+#define TYPE_INT_64_POINTER 289
+#define TYPE_CHAR 290
+#define TYPE_CHAR_POINTER 291
+#define TYPE_FLOAT 292
+#define TYPE_FLOAT_POINTER 293
+#define TYPE_DOUBLE 294
+#define TYPE_DOUBLE_POINTER 295
+#define TYPE_BOOL 296
+#define TYPE_BOOL_POINTER 297
+#define ADD_ASSIGN 298
+#define SUB_ASSIGN 299
+#define MUL_ASSIGN 300
+#define DIV_ASSIGN 301
+#define MOD_ASSIGN 302
+#define AND_ASSIGN 303
+#define XOR_ASSIGN 304
+#define OR_ASSIGN 305
+#define OPER_PLUS 306
+#define OPER_MINUS 307
+#define OPER_DIV 308
+#define OPER_MOD 309
+#define OPER_RIGHT 310
+#define OPER_LEFT 311
+#define OPER_PTR 312
+#define OPER_AND 313
+#define OPER_OR 314
+#define OPER_NOT 315
+#define OPER_LT 316
+#define OPER_LE 317
+#define OPER_GT 318
+#define OPER_GE 319
+#define OPER_EQ 320
+#define OPER_NE 321
+#define LF 322
 
 
 
@@ -209,9 +211,10 @@ typedef union YYSTYPE
     StatNode *statement;
     VarDecListNode *varDecListNode;
     ConstDecListNode *constDecListNode;
+    SkyFuncType *skyFuncType;
 }
 /* Line 1529 of yacc.c.  */
-#line 215 "sky.tab.h"
+#line 218 "sky.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

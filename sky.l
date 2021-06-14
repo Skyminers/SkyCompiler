@@ -30,6 +30,7 @@ using namespace std;
 "break"                       {return JUMP_BREAK;}
 "class"                       {return CLASS;}
 "this"                        {return THIS;}         /*自身指针*/
+"lambda"                      {return LAMBDA;}
 
 "int"                         {return TYPE_INT;}
 "int*"                        {return TYPE_INT_POINTER;}

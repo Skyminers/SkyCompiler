@@ -226,6 +226,9 @@ Constant* ConstValue::create() {
 
 // As same as constant declaration (with small difference)
 Value *VarDec::convertToCode() {
+    if (type->type == SKY_AUTO) {
+        type->type = expr->type;
+    }
     if (type->type == SKY_ARRAY) {
         engine.arrayMap[id->name] = type->arrayType;
     }
@@ -235,6 +238,7 @@ Value *VarDec::convertToCode() {
     } else {
         return CreateEntryBlockAlloca(engine.nowFunction(), id->name, varType);
     }
+    // TODO: Need call assign to support usage: var a = 2;
     return nullptr;
 }
 
@@ -285,41 +289,46 @@ Constant* SkyType::Create() {
  *  3. end
  * */
 Value * FuncDec::convertToCode() {
-//    vector<Type*> args;
-//    if (paraList != nullptr) {
-//        for (auto &it: *paraList) {
-//            args.push_back(it->type->toLLVMType());
-//        }
-//    }
-//    // func (args) -> retType {}
-//    auto funcType = FunctionType::get(retType->toLLVMType(), args, false);
-//    auto func = Function::Create(funcType, GlobalValue::ExternalLinkage, id->name, engine.getModule());
-//    engine.enterFunction(func);
-//    BasicBlock *funcBlock = BasicBlock::Create(context, "function begin", func, nullptr);
-//    builder.SetInsertPoint(funcBlock);
-//
-//    // calc params
-//    auto iterToPara = func->arg_begin();
-//    if (paraList != nullptr) {
-//        for (auto &it: *paraList) {
-//            auto mem = CreateEntryBlockAlloca(func, it->id->name, it->type->toLLVMType());
-//            builder.CreateStore(iterToPara++, mem);
-//        }
-//    }
-//    Value * ret = nullptr;
-//    if ( retType->type != SkyTypes::SKY_VOID ){
-//        ret = CreateEntryBlockAlloca(func, id->name, retType->toLLVMType());
-//    }
-//
-//    body->convertToCode();
-//
-//    engine.exitFunction();
-//    // Maintain the function stack
-//    if (engine.funcStackSize()) {
-//        auto nowFunc = engine.nowFunction();
-//        builder.SetInsertPoint(&(nowFunc->getBasicBlockList().back()));
-//    }
-//    return func;
+    funcType->funcName = id->name;
+    return funcType->convertToCode();
+}
+
+Value * SkyFuncType::convertToCode() {
+    vector<Type*> args;
+    if (paraList != nullptr) {
+        for (auto &it: *paraList) {
+            args.push_back(it->type->toLLVMType());
+        }
+    }
+    // func (args) -> retType {}
+    auto funcType = FunctionType::get(retType->toLLVMType(), args, false);
+    auto func = Function::Create(funcType, GlobalValue::ExternalLinkage, funcName, engine.getModule());
+    engine.enterFunction(func);
+    BasicBlock *funcBlock = BasicBlock::Create(context, "function begin", func, nullptr);
+    builder.SetInsertPoint(funcBlock);
+
+    // calc params
+    auto iterToPara = func->arg_begin();
+    if (paraList != nullptr) {
+        for (auto &it: *paraList) {
+            auto mem = CreateEntryBlockAlloca(func, it->id->name, it->type->toLLVMType());
+            builder.CreateStore(iterToPara++, mem);
+        }
+    }
+    Value * ret = nullptr;
+    if ( retType->type != SkyTypes::SKY_VOID ){
+        ret = CreateEntryBlockAlloca(func, funcName, retType->toLLVMType());
+    }
+
+    body->convertToCode();
+
+    engine.exitFunction();
+    // Maintain the function stack
+    if (engine.funcStackSize()) {
+        auto nowFunc = engine.nowFunction();
+        builder.SetInsertPoint(&(nowFunc->getBasicBlockList().back()));
+    }
+    return func;
 }
 
 /*
@@ -356,6 +365,8 @@ Type * SkyType::toLLVMType() {
         }
     } else if (type == SKY_ARRAY) { // Array type is special
         return ArrayType::get(arrayType->type->toLLVMType(), arrayType->size);
+    } else if (type == SKY_FUNC) {
+        return builder.getInt32Ty();
     } else return llvm::Type::getVoidTy(context);
 }
 
@@ -388,6 +399,11 @@ Value *AssignStat::convertToCode() {
             return builder.CreateStore(expr->convertToCode(), engine.findVarByName(id->name));
         case ARRAY_ASSIGN: // ArratReference = value*
             return builder.CreateStore(expr->convertToCode(), arrayRef->getValueI());
+        case LAMBDA_ASSIGN: // identifier = lambda
+            int funcID = engine.pushNewFunction();
+            dynamic_cast<SkyFuncType *>(expr)->funcName = engine.getFuncNameByID(funcID);
+            expr->convertToCode();
+            return builder.CreateStore(builder.getInt32(0), engine.findVarByName(id->name));
     }
     return nullptr;
 }

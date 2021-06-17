@@ -328,6 +328,7 @@ public:
     SkyFuncType(): paraList(nullptr), retType(nullptr), body(nullptr) { }
     Value *convertToCode() override;
 
+    string funcName;
     VarDecList *paraList;
     SkyType *retType;
     CompoundStat *body;

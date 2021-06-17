@@ -45,6 +45,8 @@ private:
     stack<Function*> funcList;
     vector<BasicBlock*> breakBlock;
     vector<BasicBlock*> continueBlock;
+    vector<string> lambdaName;
+    int lambdaCount;
 public:
     /*
      * ArrayType is constant var, which need start point and length.
@@ -57,7 +59,7 @@ public:
     ConvertEngine(){
         module = new Module("skyModule", context);
         layoutID = module->getDataLayout().getAllocaAddrSpace();
-
+        lambdaCount = 0;
         // scan function
         vector<Type*> valuesType;
         valuesType.push_back(builder.getInt8PtrTy());
@@ -108,6 +110,12 @@ public:
     BasicBlock* getCurContinueBlock();
     void enterLoop(BasicBlock* breakBlock, BasicBlock* continueBlock);
     void exitLoop();
+
+    /*
+     * Lambda ID , we use id->name to maintain lambda function
+     * */
+    string getFuncNameByID(int id);
+    int pushNewFunction();
 };
 
 #endif //CONVERTENGINE_H

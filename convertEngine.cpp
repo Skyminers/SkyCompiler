@@ -80,6 +80,17 @@ void ConvertEngine::exitLoop() {
     continueBlock.pop_back();
 }
 
+int ConvertEngine::pushNewFunction() {
+    string str = "lambdaDefault_" + to_string(lambdaCount++);
+    lambdaName.push_back(str);
+    return lambdaCount-1;
+}
+
+string ConvertEngine::getFuncNameByID(int id) {
+    assert(id < lambdaName.size());
+    return lambdaName[id];
+}
+
 // Unit test
 //int main() {
 //    engine.createMainFunction();

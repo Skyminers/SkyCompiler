@@ -226,7 +226,7 @@ Constant* ConstValue::create() {
 
 // As same as constant declaration (with small difference)
 Value *VarDec::convertToCode() {
-    if (type->type == SKY_AUTO) {
+    if (type->type == SKY_AUTO && expr != nullptr) {
         type->type = expr->type;
     }
     if (type->type == SKY_ARRAY) {
@@ -648,9 +648,9 @@ Value *ReferenceNode::convertToCode() {
     else return arrayRef->getValueI();
 }
 
-Value * PointerNode::convertToCode() {
-    return nullptr;
-}
+//Value * PointerNode::convertToCode() {
+//    return nullptr;
+//}
 
 Value * SkyArrayType::convertToCode() {
     return nullptr;
@@ -706,10 +706,6 @@ Value * ConstDecListNode::convertToCode() {
     for (auto &it : *constDecList) {
         it->convertToCode();
     }
-}
-
-Value *SkyFuncType::convertToCode() {
-    return nullptr;
 }
 
 Value *SkyAutoType::convertToCode() {

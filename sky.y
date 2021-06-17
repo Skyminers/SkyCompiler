@@ -37,10 +37,7 @@ Program * root;
     ExprNode *expression;
     ExprList *exprList;
     AssignStat *assignStat;
-    ClassDec *classDec;
     Identifier *identifier;
-    ClassBody *classBody;
-    FuncDecList *funcDecList;
     StatNode *statement;
     VarDecListNode *varDecListNode;
     ConstDecListNode *constDecListNode;
@@ -59,19 +56,16 @@ Program * root;
 %type<skyType>                          type_declaration
 %type<skyVarType>                       var_type
 %type<skyArrayType>                     array_type_declaration
-%type<funcDec>                          func_declaration main_func class_init class_del
+%type<funcDec>                          func_declaration main_func
 %type<compoundStat>                     compound_statement
 %type<statList>                         statement_list
 %type<ifStat>                           branch_statement
 %type<statement>                        for_statement statement
 %type<jumpStat>                         jump_statement
-%type<expression>                       expression expression_or expression_and expr expr_shift term factor number
+%type<expression>                       expression_all expression expression_or expression_and expr expr_shift term factor number
 %type<exprList>                         expression_list
 %type<assignStat>                       assign_statement
-%type<classDec>                         class_declaration
-%type<identifier>                       inherit_part name
-%type<classBody>                        class_body
-%type<funcDecList>                      func_declaration_list
+%type<identifier>                       name
 %type<skyFuncType>                      func_type lambda_expression
 
 %token<iVal> INTEGER
@@ -105,7 +99,6 @@ global_area
     : global_area const_declaration ';'                     { $$ = $1; $$->addConstDec($2->constDecList); }
     | global_area var_declaration ';'                       { $$ = $1; $$->addVarDec($2->varDecList); }
     | global_area func_declaration                          { $$ = $1; $$->addFuncDec($2); }
-    | global_area class_declaration                         { $$ = $1; $$->addClassDec($2); }
     |                                                       { $$ = new GlobalArea(); }
     ;
 
@@ -146,8 +139,7 @@ var_list
     ;
 
 var_expr
-    : name '=' expression                                   { $$ = new VarDec($1, new SkyType(new SkyAutoType()), $3); }
-    | name '=' lambda_expression                            { $$ = new VarDec($1, $3); }
+    : name '=' expression_all                               { $$ = new VarDec($1, new SkyType(new SkyAutoType()), $3); }
     | name ':' type_declaration                             { $$ = new VarDec($1, $3, nullptr); }
     | name                                                  { $$ = new VarDec($1, new SkyType(new SkyAutoType()), nullptr); }
     ;
@@ -182,12 +174,12 @@ var_type
     ;
 
 func_declaration
-    : FUNCTION name '(' para_list ')' compound_statement     { $$ = new FuncDec($2, new SkyFuncType($4, $6)); }
-    | FUNCTION name '(' para_list ')' OPER_PTR var_type compound_statement   { $$ = new FuncDec($2, new SkyFuncType($4, new SkyType($7), $8)); }
+    : FUNCTION name '(' para_list ')' compound_statement    { $$ = new FuncDec($2, new SkyFuncType($4, $6)); }
+    | FUNCTION name '(' para_list ')' OPER_PTR var_type compound_statement  { $$ = new FuncDec($2, new SkyFuncType($4, new SkyType($7), $8)); }
     ;
 
 main_func
-    : FUNCTION MAIN '(' ')' OPER_PTR TYPE_INT compound_statement     { $$ = new FuncDec(new Identifier($2), new SkyFuncType(nullptr, new SkyType(new SkyVarType(SkyVarType::SKY_INT)), $7)); }
+    : FUNCTION MAIN '(' ')' OPER_PTR TYPE_INT compound_statement    { $$ = new FuncDec(new Identifier($2), new SkyFuncType(nullptr, new SkyType(new SkyVarType(SkyVarType::SKY_INT)), $7)); }
     ;
 
 statement_list
@@ -225,6 +217,11 @@ jump_statement
     | JUMP_CONTINUE                                          { $$ = new JumpStat(TypeOfJump::CONTINUE, nullptr); }
     | JUMP_RETURN                                            { $$ = new JumpStat(TypeOfJump::RETURN, nullptr); }
     | JUMP_RETURN expression                                 { $$ = new JumpStat(TypeOfJump::RETURN, $2); }
+    ;
+
+expression_all
+    : expression                                            { $$ = $1; }
+    | lambda_expression                                     { $$ = $1; }
     ;
 
 expression
@@ -274,23 +271,17 @@ factor
 
 number
     : name '[' expression ']'                               { $$ = new ArrayReference($1, $3); }
-    | name '.' name                                         { $$ = new ClassRef($1, $3); }
     | '(' expression ')'                                    { $$ = $2; }
     | name '(' expression_list ')'                          { $$ = new FuncCall($1, $3); }
     | const_value                                           { $$ = $1; }
     | name                                                  { $$ = $1; }
-    | '*' name '[' expression ']'                           { $$ = new PointerNode(new ArrayReference($2, $4)); }
-    | '*' name '.' name                                     { $$ = new PointerNode(new ClassRef($2, $4)); }
-    | '*' name '(' expression_list ')'                      { $$ = new PointerNode(new FuncCall($2, $4)); }
-    | '*' name                                              { $$=  new PointerNode($2); }
-    | '*' '(' expression ')'                                { $$ = new PointerNode($3); }
     | '&' name                                              { $$ = new ReferenceNode($2); }
     | '&' name '[' expression ']'                           { $$ = new ReferenceNode(new ArrayReference($2, $4)); }
     ;
 
 expression_list
-    : expression_list ',' expression                        { $$ = $1; $$->push_back($3); }
-    | expression                                            { $$ = new ExprList(); $$->push_back($1); }
+    : expression_list ',' expression_all                    { $$ = $1; $$->push_back($3); }
+    | expression_all                                        { $$ = new ExprList(); $$->push_back($1); }
     |                                                       { $$ = nullptr; }
     ;
 
@@ -304,39 +295,13 @@ lambda_expression
     ;
 
 assign_statement
-    : name '=' expression                                   { $$ = new AssignStat($1, $3); }
-    | name '=' lambda_expression                            { $$ = new AssignStat($1, $3); }
+    : name '=' expression_all                               { $$ = new AssignStat($1, $3); }
     | name '[' expression ']' '=' expression                { $$ = new AssignStat(new ArrayReference($1, $3), $6); }
     ;
 
 name
     : IDENTIFIER                                            { $$ = new Identifier($1); }
     ;
-
-class_declaration
-    : CLASS name inherit_part '{' class_body '}'            { $$ = new ClassDec($2, $3, $5); }
-    ;
-
-inherit_part
-    : ':' name                                              { $$ = $2; }
-    |                                                       { $$ = nullptr; }
-    ;
-
-class_body
-    : class_init class_del func_declaration_list            { $$ = new ClassBody($1, $2, $3); }
-    ;
-
-class_init
-    : FUNCTION INIT '(' var_list ')' OPER_PTR var_type compound_statement     { $$ = new FuncDec(new Identifier($2), new SkyFuncType($4, new SkyType($7), $8)); }
-    ;
-
-class_del
-    : FUNCTION DEL '(' var_list ')' OPER_PTR var_type compound_statement      { $$ = new FuncDec(new Identifier($2), new SkyFuncType($4, new SkyType($7), $8)); }
-    ;
-
-func_declaration_list
-    : func_declaration_list func_declaration                { $$ = $1; $$->push_back($2); }
-    |                                                       { $$ = new FuncDecList(); }
 
 %%
 

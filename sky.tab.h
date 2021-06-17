@@ -204,17 +204,14 @@ typedef union YYSTYPE
     ExprNode *expression;
     ExprList *exprList;
     AssignStat *assignStat;
-    ClassDec *classDec;
     Identifier *identifier;
-    ClassBody *classBody;
-    FuncDecList *funcDecList;
     StatNode *statement;
     VarDecListNode *varDecListNode;
     ConstDecListNode *constDecListNode;
     SkyFuncType *skyFuncType;
 }
 /* Line 1529 of yacc.c.  */
-#line 218 "sky.tab.h"
+#line 215 "sky.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

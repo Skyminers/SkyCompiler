@@ -228,18 +228,22 @@ Constant* ConstValue::create() {
 Value *VarDec::convertToCode() {
     if (type->type == SKY_AUTO && expr != nullptr) {
         type->type = expr->type;
+        type->varType = &(expr->varType);
     }
     if (type->type == SKY_ARRAY) {
         engine.arrayMap[id->name] = type->arrayType;
     }
     auto varType = type->toLLVMType();
+    Value * ret = nullptr;
     if(isGlobal()) { // Difference is that : we should not pass initValue to it.
-        return new GlobalVariable(*engine.getModule(), varType, false, GlobalValue::ExternalLinkage, type->Create(), id->name);
+        ret = new GlobalVariable(*engine.getModule(), varType, false, GlobalValue::ExternalLinkage, type->Create(), id->name);
     } else {
-        return CreateEntryBlockAlloca(engine.nowFunction(), id->name, varType);
+        ret = CreateEntryBlockAlloca(engine.nowFunction(), id->name, varType);
     }
-    // TODO: Need call assign to support usage: var a = 2;
-    return nullptr;
+    auto assign = new AssignStat(id, expr);
+    assign->convertToCode();
+    delete assign;
+    return ret;
 }
 
 /*
@@ -403,7 +407,7 @@ Value *AssignStat::convertToCode() {
             int funcID = engine.pushNewFunction();
             dynamic_cast<SkyFuncType *>(expr)->funcName = engine.getFuncNameByID(funcID);
             expr->convertToCode();
-            return builder.CreateStore(builder.getInt32(0), engine.findVarByName(id->name));
+            return builder.CreateStore(builder.getInt32(funcID), engine.findVarByName(id->name));
     }
     return nullptr;
 }
@@ -443,6 +447,9 @@ Value *ArrayReference::getValueI() {
 Value *FuncCall::convertToCode() {
     auto func = engine.getModule()->getFunction(id->name);
     if (func == nullptr) { // If this function is not implement
+        // Search for lambda
+        auto idValue = engine.findVarByName(id->name);
+
         throw FuncNotFound(*(new string(id->name)) + " not found");
     }
 

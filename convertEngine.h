@@ -33,12 +33,7 @@ public:
     Module *getModule() const;
 
 private:
-    uint layoutID;
     Function *scan, *print;
-public:
-    Function *getScan() const;
-    Function *getPrint() const;
-    Function *getMain() const;
 
 private:
     Function *main;
@@ -75,16 +70,9 @@ public:
     }
 
     /*
-     * This function is used to create main function.
-     * Main function is a special function which represented the entrance of program
-     * */
-    void createMainFunction();
-
-    /*
      * Below two function is used to find var by name.
      * Note: Array type is different from normal var.
      * */
-    SkyArrayType* findArrayValue(string varName);
     Value* findVarByName(string varName);
     Value* findVarByName(char* varName);
 
@@ -99,7 +87,6 @@ public:
     void enterFunction(Function* func){ funcList.push(func);}
     void exitFunction(){ funcList.pop(); }
 
-    Function* askForFunction(string funcName);
     void compileToFile(string fileName);
 
     /*

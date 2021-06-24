@@ -14,16 +14,6 @@ void ConvertEngine::compileToFile(string fileName) {
     module->print(*out , nullptr);
 }
 
-void ConvertEngine::createMainFunction() {
-    vector<Type*> valuesType;
-    auto funcType = FunctionType::get(builder.getInt32Ty(), makeArrayRef(valuesType), false);
-    main = Function::Create(funcType, GlobalValue::ExternalLinkage, "main", module);
-}
-
-SkyArrayType* ConvertEngine::findArrayValue(string varName) {
-    if(arrayMap.count(varName) == 0) return nullptr;
-    return arrayMap[varName];
-}
 
 Value* ConvertEngine::findVarByName(string varName) {
     auto nowFunc = funcList.top();
@@ -40,23 +30,6 @@ Value* ConvertEngine::findVarByName(char *varName) {
     return findVarByName(string(varName));
 }
 
-Function* ConvertEngine::askForFunction(string funcName) {
-    auto func = module->getFunction(funcName);
-    if(func == nullptr) throw FuncNotFound(funcName + " not found");
-    return func;
-}
-
-Function *ConvertEngine::getScan() const {
-    return scan;
-}
-
-Function *ConvertEngine::getPrint() const {
-    return print;
-}
-
-Function *ConvertEngine::getMain() const {
-    return main;
-}
 
 Module *ConvertEngine::getModule() const {
     return module;

@@ -240,9 +240,6 @@ Value *VarDec::convertToCode() {
     } else {
         ret = CreateEntryBlockAlloca(engine.nowFunction(), id->name, varType);
     }
-    auto assign = new AssignStat(id, expr);
-    assign->convertToCode();
-    delete assign;
     return ret;
 }
 

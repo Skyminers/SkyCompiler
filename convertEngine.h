@@ -53,7 +53,7 @@ public:
 public:
     ConvertEngine(){
         module = new Module("skyModule", context);
-        layoutID = module->getDataLayout().getAllocaAddrSpace();
+        int layoutID = module->getDataLayout().getAllocaAddrSpace();
         lambdaCount = 0;
         // scan function
         vector<Type*> valuesType;

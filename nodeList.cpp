@@ -415,6 +415,8 @@ Value *AssignStat::convertToCode() {
 Value *BinaryExpr::convertToCode() {
     auto leftValue = this->left->convertToCode();
     auto rightValue = this->right->convertToCode();
+    this->type = this->left->type;
+    this->varType = this->left->varType;
     return calcOp(leftValue, rightValue, op);
 }
 

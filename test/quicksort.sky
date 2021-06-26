@@ -1,5 +1,4 @@
-var a: int[10010];
-var n: int;
+var a: int[10010], n: int;
 
 func qsort(l : int, r : int) -> int {
     var i: int, j: int, mid: int, tmp: int;
@@ -17,11 +16,6 @@ func qsort(l : int, r : int) -> int {
             j = j - 1;
         }
     }
-    //printf("%d %d %d %d@", l, r, i, j);
-    //var k: int;
-    //for k in [0, n, 1] {
-    //    printf("%d ", a[k]);
-    //}
     if (l < j) { qsort(l, j); }
     if (i < r) { qsort(i, r); }
     return 0;
@@ -39,3 +33,4 @@ func main() -> int {
     }
     return 0;
 }
+
